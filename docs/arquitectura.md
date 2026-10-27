@@ -1,33 +1,43 @@
-# Arquitectura de Gestión de RR.HH
+# Arquitectura de Gestión de RR.HH - Backend
 
-## Estructura modular
+## Monolito Modular
 
-- **Monolito modular:** Cada dominio funcional es un módulo bajo `modules/{modulo}`.
-- **Capas por módulo:**
-  - `domain`: modelo, enums y puertos sin dependencias externas.
-  - `application`: servicios, casos de uso y DTOs (records).
-  - `infrastructure`: entidades JPA, adaptadores, repositorios Spring Data, integraciones externas.
-  - `api`: controladores REST y contratos HTTP.
+El proyecto implementa un monolito modular bajo el paquete raíz `com.techforb.rrhh`. Cada módulo reside bajo `modules/{modulo}` y a su vez organiza sus capas en:
+- `domain`: modelos y puertos (sin dependencias a Spring ni a otros dominios)
+- `application`: servicios transaccionales, reglas de negocio, DTOs
+- `infrastructure`: entidades JPA, repositorios Spring Data, adaptadores
+- `api`: controladores REST (REST bajo `/api/{modulo}`)
 
-## Multi-organización (SaaS-ready)
+### Límites y acceso
+- Un módulo nunca accede directamente a entidades o repositorios de otro: en tal caso usa el servicio de aplicación o eventos de Spring.
+- ArchUnit (tests) valida los límites.
+- Ejemplo: el módulo `colaboradores` muestra el patrón a seguir.
 
-- Cada tabla de negocio tiene `organizacion_id` (UUID).
-- Organizacion obtenida siempre de `TenantContext` (claim 'org' del JWT).
-- No se permite cross-organization.
+## Multi-organización
+
+- Toda entidad relevante lleva `organizacion_id` (`UUID`)
+- La organización actual proviene únicamente del JWT (claim `org`), JAMÁS de la request ni del body; se obtiene desde `TenantContext`.
+- El filtro Hibernate `organizacionFilter` se activa en cada transacción y limita el acceso a los datos de la organización actual.
 
 ## Seguridad
 
-- JWT firmado HS256 en cookie HttpOnly 'rrhh_session'.
-- Un rol principal: ADMIN_RRHH.
-- Solo `/api/public/**`, `/api/auth/login` y `/actuator/health` son anónimos.
+- Login único (USERNAME: email corporativo, contraseña) via `/api/auth/login`, emite JWT firmado (HS256) almacenado en cookie HttpOnly Secure SameSite=Lax con nombre `rrhh_session`
+- Rol único: `ADMIN_RRHH`
+- Panel administrativo: sólo para administradores internos. Los colaboradores gestionan ausencias y datos personales vía formularios externos `public`+token
 
 ## Trazabilidad
 
-- No se borra información de negocio.
-- Cambios publican eventos que el módulo auditoría almacena con valores anterior/nuevo, responsable y fecha.
+- Todos los cambios relevantes (altas, edición de datos, egresos, renovaciones, liquidaciones, solicitudes, beneficios, etc.) publican eventos y son auditados por el módulo de auditoría (`append-only`)
+- Nada de negocio se elimina físicamente
 
-## Límites y dependencias
+## Decisiones de seguridad
 
-- Un módulo no accede directamente a las entidades de infraestructura de otro módulo.
-- La comunicación es vía servicios de application, eventos de Spring o puertos compartidos.
-- Validado por tests ArchUnit.
+- JWT HS256 firmado con secreto de entorno
+- No se permite el paso de `organizacionId` por body ni query
+- CORS restringido al frontend configurado vía `FRONT_URL`
+
+## Base de datos
+- PostgreSQL 16
+- Migraciones con Flyway: toda tabla/grupo funcional agrega migración bajo `db/migration/Vn__{nombre}.sql`
+- Convención sobre nombres en español y snake_case
+- DDL válido sólo con scripts Flyway; `ddl-auto: validate`

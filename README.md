@@ -1,31 +1,44 @@
-# Gestión de RR.HH – Backend
+# Gestión de RR.HH - Backend
 
-Plataforma de gestión de Recursos Humanos para TECHFORB.
+## Puesta en marcha
 
-## Levantamiento en desarrollo
-
-1. Levanta los servicios base:
-
-   ```
+1. **Arranque de servicios requeridos**
+   
+   Levanta la base de datos y el servidor de correos de prueba:
+   
+   ```bash
    docker compose up -d
    ```
+   
+   (Esto inicia PostgreSQL 16 y Mailpit en los puertos correspondientes).
 
-2. Crea el archivo `.env` copiando y editando `.env.example` según corresponda.
+2. **Variables de entorno**
+   
+   Copia `.env.example` a `.env` y edita los valores según tu entorno local.
 
-3. Inicia la aplicación:
+3. **Ejecución**
 
-   ```
+   Ejecuta la aplicación con Maven Wrapper (Java 21 requerido):
+   
+   ```bash
    ./mvnw spring-boot:run
    ```
 
-- Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- Base de datos: PostgreSQL (puerto 5432, usuario/contraseña configurables)
-- Correo de prueba: Mailpit ([http://localhost:8025](http://localhost:8025), SMTP en localhost:1025)
+4. **Perfiles**
 
-## Convención de módulos
+   Por defecto utiliza el perfil de desarrollo (`application-dev.yml`). 
+   Apunta al frontend en `FRONT_URL` para CORS correctos.
 
-- Cada funcionalidad está en `src/main/java/com/techforb/rrhh/modules/{modulo}` (ejemplo: `colaboradores`).
-- Capas: domain, application, infrastructure, api.
-- Toda entidad de negocio lleva `organizacion_id` (multi-tenant, preparado para SaaS).
-- Seguridad: JWT HS256 en cookie HttpOnly 'rrhh_session'.
-- Validaciones, manejo de errores y trazabilidad automáticos según arquitectura.
+5. **Convención de módulos**
+
+   Cada funcionalidad reside en `src/main/java/com/techforb/rrhh/modules/{modulo}`. 
+   Las capas son: `domain`, `application`, `infrastructure` y `api` según el patrón ejemplo (`colaboradores`).
+
+---
+
+## Otros
+
+- Migraciones Flyway en `src/main/resources/db/migration`.
+- Documentación Swagger: http://localhost:8080/swagger-ui.html
+- Mailpit UI: http://localhost:8025
+

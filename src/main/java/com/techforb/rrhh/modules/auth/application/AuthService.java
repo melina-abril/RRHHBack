@@ -8,32 +8,34 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class AuthService {
+    public SesionResponse login(LoginRequest login) {
+        // Dummy implementation: solo acepta email 'rh@techforb.com' y password 'demo123'
+        if ("rh@techforb.com".equalsIgnoreCase(login.email()) && "demo123".equals(login.password())) {
+            return new SesionResponse(
+                    "f0fac4c1-63b9-47cd-8e99-f87e019aac9f",
+                    "RH ADMIN",
+                    "rh@techforb.com",
+                    "ADMIN_RRHH",
+                    "techforb-org-uuid"
+            );
+        } else {
+            // Dummy: devuelve null, el controller responde 401
+            return null;
+        }
+    }
 
-    public SesionResponse login(LoginRequest request) {
-        // Dummy: simula autenticación exitosa, siempre devuelve admin
+    public SesionResponse getCurrentSession() {
+        // Dummy: devuelve siempre la sesión de ejemplo
         return new SesionResponse(
-            "e87e4b66-205a-47a4-8b48-cc11e72d9b31",
-            "rh@techforb.com",
-            "Administrador RH",
-            "ADMIN_RRHH",
-            "c470cf0d-d878-41ad-8aa3-2d1ac487ab22"
+                "f0fac4c1-63b9-47cd-8e99-f87e019aac9f",
+                "RH ADMIN",
+                "rh@techforb.com",
+                "ADMIN_RRHH",
+                "techforb-org-uuid"
         );
-        // Nota: reemplazar lógica dummy por autenticación real
     }
 
     public void logout() {
-        // Dummy: no realiza ninguna acción (solo elimina cookie en controller)
-    }
-
-    public SesionResponse getSessionInfo() {
-        // Dummy: siempre retorna sesión admin fija
-        return new SesionResponse(
-            "e87e4b66-205a-47a4-8b48-cc11e72d9b31",
-            "rh@techforb.com",
-            "Administrador RH",
-            "ADMIN_RRHH",
-            "c470cf0d-d878-41ad-8aa3-2d1ac487ab22"
-        );
-        // Nota: implementar lógica real a futuro
+        // Dummy: no hace nada, la cookie se borra en el controller
     }
 }
