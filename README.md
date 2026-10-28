@@ -1,44 +1,53 @@
-# Gestión de RR.HH - Backend
+# Base de Datos · Gestión de RR.HH
 
-## Puesta en marcha
+Esta base implementa el modelo relacional para el sistema Gestión de Recursos Humanos sobre **MySQL 8.4** con migraciones **Flyway** (aplicadas automáticamente al levantar el entorno con Docker Compose).
 
-1. **Arranque de servicios requeridos**
-   
-   Levanta la base de datos y el servidor de correos de prueba:
-   
-   ```bash
-   docker compose up -d
-   ```
-   
-   (Esto inicia PostgreSQL 16 y Mailpit en los puertos correspondientes).
+## Estructura de carpetas
 
-2. **Variables de entorno**
-   
-   Copia `.env.example` a `.env` y edita los valores según tu entorno local.
+- `db/migration/`: Migraciones Flyway versionadas (esquema y seeds). NO modificar los archivos de migraciones ya aplicadas.
+- `.env.example`: Variables de entorno para MySQL y Flyway (copiar a `.env`).
+- `docker-compose.yml`: Levanta MySQL y aplica migraciones con Flyway.
 
-3. **Ejecución**
+## Comandos para levantar y aplicar migraciones
 
-   Ejecuta la aplicación con Maven Wrapper (Java 21 requerido):
-   
-   ```bash
-   ./mvnw spring-boot:run
-   ```
+```bash
+cp .env.example .env
+docker compose up -d
+```
+Esto levanta MySQL y aplica todas las migraciones de `db/migration/` en orden.
 
-4. **Perfiles**
+## Orden y detalle de migraciones
 
-   Por defecto utiliza el perfil de desarrollo (`application-dev.yml`). 
-   Apunta al frontend en `FRONT_URL` para CORS correctos.
+### Compartidas (V1)
+- **V1__create_core_tables.sql**: Tablas compartidas: `departments`, `positions`, `employees` (legajos y estructura básica de RRHH)
+- **V1_1__seed_core.sql**: Datos de ejemplo para los core tables (áreas, puestos y empleados ficticios)
 
-5. **Convención de módulos**
+### Módulo de Autenticación (V2)
+- **V2__create_auth_tables.sql**: Tablas de autenticación de la cuenta administradora:
+    - `admin_users`: Administradores (MVP = 1)
+    - `user_sessions`: Sesiones autenticadas (auditoría/login tokens)
+- **V2_1__seed_auth.sql**: Usuario administrador de ejemplo (correo: sofia.gomez@example.com)
 
-   Cada funcionalidad reside en `src/main/java/com/techforb/rrhh/modules/{modulo}`. 
-   Las capas son: `domain`, `application`, `infrastructure` y `api` según el patrón ejemplo (`colaboradores`).
+### Módulo Pantalla Principal (V3)
+- **V3__create_inicio_module.sql**: No crea tablas propias. La pantalla principal consulta métricas de las tablas compartidas y de otros módulos.
 
----
+## Tablas por módulo
 
-## Otros
+- **core**: departments, positions, employees
+- **auth**: admin_users, user_sessions
+- **inicio**: *(sin tablas propias)*
 
-- Migraciones Flyway en `src/main/resources/db/migration`.
-- Documentación Swagger: http://localhost:8080/swagger-ui.html
-- Mailpit UI: http://localhost:8025
+## Notas y convenciones
 
+- Tablas solo de empleados, puestos y departamentos se crean como *compartidas* y se referencian con claves foráneas.
+- Los módulos de RR.HH. crearán sus propias tablas en migraciones posteriores siguiendo el mismo esquema.
+- Cada tabla incluye columnas de auditoría (created_at, updated_at); las de personas/usuarios incluyen deleted_at para borrado lógico.
+- Los seeds referencian las claves foráneas por subconsulta, nunca por id fijo.
+
+## Acceso a la base
+
+- Conectarse con los valores de `.env`.
+- Por defecto:
+    - puerto: 3306
+    - usuario: hr_app
+    - nombre base: hr
