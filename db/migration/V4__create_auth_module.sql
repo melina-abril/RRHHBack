@@ -1,0 +1,5 @@
+-- V4__create_auth_module.sql
+-- Módulo: inicio de sesión (auth)
+-- No se crean tablas nuevas para autenticación en este MVP, ya que la administración de usuarios no es gestionada mediante base de datos en la etapa inicial (una sola cuenta administradora, sin alta ni baja desde la UI, login dummy en backend).
+-- Las tablas de empleados y roles ya están incluidas en la migración de core (V1__create_core_tables.sql) y están pensadas para extenderse en futuras versiones.
+-- Si en el futuro se requiere almacenar cuentas de usuario, contraseñas hash y auditoría de accesos, tales tablas se agregarán aquí siguiendo los estándares de seguridad.
