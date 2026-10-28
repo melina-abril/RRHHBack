@@ -1,68 +1,57 @@
-# Gestión de RR.HH · Base de datos
+# Gestión de RR.HH — Backend (Spring Boot)
 
-Base de datos MySQL 8.4 con migraciones Flyway para el sistema de Gestión de Recursos Humanos.
+Plataforma web para centralizar la gestión administrativa de Recursos Humanos en TECHFORB.
 
-## Comandos de arranque
+## Requisitos
+- Java 21+
+- Maven 3.9+
+- Docker (para el stack local: PostgreSQL + Mailpit)
 
-1. Copiar variables de entorno de ejemplo:
+## Levantar entorno de desarrollo
 
-   cp .env.example .env
+1. Clonar el repo y posicionarse en la raíz
+2. Copiar `.env.example` a `.env` y personalizar si es necesario
+3. Levantar base y mailpit:
 
-2. Levantar la base y aplicar las migraciones:
+```bash
+docker compose up -d
+```
 
-   docker compose up -d
+4. Levantar el backend (perfil desarrollo):
 
-- El servicio `db` levanta MySQL en el puerto `3306` (configurable por la variable de entorno `DB_PORT`).
-- El servicio `flyway` aplica todas las migraciones en orden a la base configurada.
-- Los datos se almacenan en un volumen Docker llamado `hr-db-data`.
+```bash
+./mvnw spring-boot:run
+```
+
+- Swagger: <http://localhost:8080/swagger-ui.html>
+- Health: <http://localhost:8080/actuator/health>
+- API base: <http://localhost:8080/api>
+
+Acceso inicial: usuario ADMIN_RRHH creado al migrar las tablas (ver migraciones en `src/main/resources/db/migration`).
+
+## Módulos
+Cada dominio implementa:
+- `modules/{modulo}/domain` — modelo puro
+- `modules/{modulo}/application` — casos de uso/servicios
+- `modules/{modulo}/infrastructure` — entidades JPA, repositorios, adaptadores
+- `modules/{modulo}/api` — REST
 
 ## Migraciones
+Se aplican automáticamente al levantar:
+- Modelo base y usuario admin: `V1__esquema_base.sql`
+- Colaboradores y movimientos laborales: `V2__colaboradores.sql`
 
-Las migraciones se encuentran en la carpeta `db/migration/`.
-- Los archivos comienzan con un prefijo de versión, por ejemplo: `V1__create_core_tables.sql`.
-- Todo seed de datos de ejemplo usa el sufijo `_1__seed_{modulo}.sql` con la misma versión.
-- **NO modificar migraciones ya aplicadas.** Para cambios usar una nueva migración con la siguiente versión.
+## Variables importantes
+- `DB_URL`, `DB_USER`, `DB_PASSWORD`: conexión PostgreSQL
+- `JWT_SECRET`: clave JWT (>=32 chars para HS256)
+- `MAIL_HOST`/`MAIL_PORT`: SMTP local — por defecto Mailpit
+- `FRONT_URL`: origen frontend (CORS)
 
-### Orden de migraciones
+## Comandos útiles
+- Build: `./mvnw -B package`
+- Run:  `./mvnw spring-boot:run`
+- Test: `./mvnw test`
+- Testcontainers/ArchUnit: consultá los tests bajo `src/test/java/com/techforb/rrhh`
 
-1. **V1__create_core_tables.sql** : Tablas compartidas esenciales. Siempre corre primero.
-2. (Futuras migraciones de módulos: V2, V3, etc.)
-
-### Tablas de la base
-
-#### Compartidas (core):
-- `departments`: áreas/departamentos de la organización.
-- `positions`: puestos (depende de áreas/departamentos).
-- `employees`: legajos y datos principales de colaboradores.
-
-
-#### Módulos actuales (v1):
-- `auth`  — Inicio de sesión: no agrega tablas (uso de tablas core).
-- `inicio` — Pantalla principal: solo consultas, no agrega tablas.
-
-## Datos de ejemplo
-
-Datos ficticios de las tablas compartidas están en el seed correspondiente (a generar en futuras migraciones según corresponda). Los ids jamás se fijan a mano: cualquier relación usa `SELECT ... WHERE ...` por clave de negocio, nunca ids numéricos hardcodeados.
-
-## Conectarse a la base
-
-- Usuario: `${DB_USER}` (por defecto: hr_app)
-- Contraseña: `${DB_PASSWORD}`
-- Base: `${DB_NAME}`
-
-Con MySQL Workbench o DBeaver, host `localhost`, puerto como en `DB_PORT` (por defecto: 3306).
-
-## Migraciones existentes
-
-- **db/migration/V1__create_core_tables.sql**
-  - Tablas: departments, positions, employees
-
-(Actualmente los módulos `auth` e `inicio` no requieren tablas propias; futuros módulos agregarán migraciones propias en la carpeta.)
-
-## Notas sobre el modelo
-
-- Todas las FK referencian por el mismo tipo que la clave principal (`BIGINT UNSIGNED`).
-- Las tablas de personas y legajos usan borrado lógico (`deleted_at DATETIME(3) NULL`).
-- Datos sensibles (documentos, email, etc.) señalados con `COMMENT 'PII'`.
-- Las migraciones siguen las convenciones descritas en este archivo y en la arquitectura del sistema.
-
+## Arquitectura
+Monolito modular. Todas las entidades extienden `AuditableEntity`, claves ajenas siempre filtran por `organizacion_id` desde JWT ('org' claim).

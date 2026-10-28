@@ -1,4 +1,7 @@
-target/
+# Build
+/target/
+# IDEA
 .idea/
 *.iml
+# Environments
 .env
