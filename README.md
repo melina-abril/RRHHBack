@@ -1,54 +1,68 @@
-# Base de datos · Sistema de Gestión de RR.HH (TECHFORB)
+# Gestión de RR.HH · Base de datos
 
-## Levantar la base localmente
+Base de datos MySQL 8.4 con migraciones Flyway para el sistema de Gestión de Recursos Humanos.
 
-1. Copiar variables de entorno:
+## Comandos de arranque
 
-```bash
-cp .env.example .env
-```
+1. Copiar variables de entorno de ejemplo:
 
-2. Arrancar la base y aplicar migraciones:
+   cp .env.example .env
 
-```bash
-docker compose up -d
-```
+2. Levantar la base y aplicar las migraciones:
 
-- El servicio `db` levanta MySQL 8.4.
-- El servicio `flyway` aplica las migraciones de db/migration en orden.
-- Los datos persisten en el volumen `hr-db-data`.
+   docker compose up -d
 
-## Migraciones / Tablas creadas
+- El servicio `db` levanta MySQL en el puerto `3306` (configurable por la variable de entorno `DB_PORT`).
+- El servicio `flyway` aplica todas las migraciones en orden a la base configurada.
+- Los datos se almacenan en un volumen Docker llamado `hr-db-data`.
 
-- **V1__create_core_tables.sql**: Tablas compartidas (core):
-  - `departments` (áreas)
-  - `positions` (puestos, FK a departments)
-  - `employees` (legajos, FK a departments y positions, auto-relación para manager)
-- **V1_1__seed_core.sql**: Datos de ejemplo de core (áreas, puestos, empleados de prueba).
-- **V2__create_auth_tables.sql**: Módulo Auth:
-  - `admin_accounts` (cuenta admin de RRHH, login único para TECHFORB)
-  - `admin_sessions` (sesiones activas/cerradas para auditoría y revocación)
-- **V2_1__seed_auth.sql**: Datos de ejemplo sólo para Auth (cuenta administradora de TECHFORB).
+## Migraciones
 
-## Orden y convenciones de migraciones
+Las migraciones se encuentran en la carpeta `db/migration/`.
+- Los archivos comienzan con un prefijo de versión, por ejemplo: `V1__create_core_tables.sql`.
+- Todo seed de datos de ejemplo usa el sufijo `_1__seed_{modulo}.sql` con la misma versión.
+- **NO modificar migraciones ya aplicadas.** Para cambios usar una nueva migración con la siguiente versión.
 
-- Cada módulo funcional agrega su migración a `db/migration/`:
-  - V{n}__create_{modulo}_tables.sql (esquema)
-  - V{n}_1__seed_{modulo}.sql (datos de ejemplo)
-- Convenciones:
-  - Tablas `snake_case` en inglés, plurales.
-  - PK: BIGINT UNSIGNED AUTO_INCREMENT
-  - FK: mismo tipo exacto, ON DELETE RESTRICT
-  - Auditoría: `created_at`, `updated_at`, `deleted_at` donde corresponda
-  - Engine: InnoDB, charset/collation utf8mb4
-  - Estados como VARCHAR con CHECK
-  - Datos sensibles COMMENT 'PII'
+### Orden de migraciones
 
-## Conexión
+1. **V1__create_core_tables.sql** : Tablas compartidas esenciales. Siempre corre primero.
+2. (Futuras migraciones de módulos: V2, V3, etc.)
 
-Servidor MySQL expuesto en `${DB_PORT:-3306}`:
-  - Usuario: `${DB_USER}`
-  - Password: `${DB_PASSWORD}`
-  - Base: `${DB_NAME}`
+### Tablas de la base
 
-> *Nunca usar estos valores de ejemplo en entornos reales.*
+#### Compartidas (core):
+- `departments`: áreas/departamentos de la organización.
+- `positions`: puestos (depende de áreas/departamentos).
+- `employees`: legajos y datos principales de colaboradores.
+
+
+#### Módulos actuales (v1):
+- `auth`  — Inicio de sesión: no agrega tablas (uso de tablas core).
+- `inicio` — Pantalla principal: solo consultas, no agrega tablas.
+
+## Datos de ejemplo
+
+Datos ficticios de las tablas compartidas están en el seed correspondiente (a generar en futuras migraciones según corresponda). Los ids jamás se fijan a mano: cualquier relación usa `SELECT ... WHERE ...` por clave de negocio, nunca ids numéricos hardcodeados.
+
+## Conectarse a la base
+
+- Usuario: `${DB_USER}` (por defecto: hr_app)
+- Contraseña: `${DB_PASSWORD}`
+- Base: `${DB_NAME}`
+
+Con MySQL Workbench o DBeaver, host `localhost`, puerto como en `DB_PORT` (por defecto: 3306).
+
+## Migraciones existentes
+
+- **db/migration/V1__create_core_tables.sql**
+  - Tablas: departments, positions, employees
+
+(Actualmente los módulos `auth` e `inicio` no requieren tablas propias; futuros módulos agregarán migraciones propias en la carpeta.)
+
+## Notas sobre el modelo
+
+- Todas las FK referencian por el mismo tipo que la clave principal (`BIGINT UNSIGNED`).
+- Las tablas de personas y legajos usan borrado lógico (`deleted_at DATETIME(3) NULL`).
+- Datos sensibles (documentos, email, etc.) señalados con `COMMENT 'PII'`.
+- Las migraciones siguen las convenciones descritas en este archivo y en la arquitectura del sistema.
+
