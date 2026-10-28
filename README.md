@@ -1,44 +1,54 @@
-# Gestión de RR.HH - Backend
+# Base de datos · Sistema de Gestión de RR.HH (TECHFORB)
 
-## Puesta en marcha
+## Levantar la base localmente
 
-1. **Arranque de servicios requeridos**
-   
-   Levanta la base de datos y el servidor de correos de prueba:
-   
-   ```bash
-   docker compose up -d
-   ```
-   
-   (Esto inicia PostgreSQL 16 y Mailpit en los puertos correspondientes).
+1. Copiar variables de entorno:
 
-2. **Variables de entorno**
-   
-   Copia `.env.example` a `.env` y edita los valores según tu entorno local.
+```bash
+cp .env.example .env
+```
 
-3. **Ejecución**
+2. Arrancar la base y aplicar migraciones:
 
-   Ejecuta la aplicación con Maven Wrapper (Java 21 requerido):
-   
-   ```bash
-   ./mvnw spring-boot:run
-   ```
+```bash
+docker compose up -d
+```
 
-4. **Perfiles**
+- El servicio `db` levanta MySQL 8.4.
+- El servicio `flyway` aplica las migraciones de db/migration en orden.
+- Los datos persisten en el volumen `hr-db-data`.
 
-   Por defecto utiliza el perfil de desarrollo (`application-dev.yml`). 
-   Apunta al frontend en `FRONT_URL` para CORS correctos.
+## Migraciones / Tablas creadas
 
-5. **Convención de módulos**
+- **V1__create_core_tables.sql**: Tablas compartidas (core):
+  - `departments` (áreas)
+  - `positions` (puestos, FK a departments)
+  - `employees` (legajos, FK a departments y positions, auto-relación para manager)
+- **V1_1__seed_core.sql**: Datos de ejemplo de core (áreas, puestos, empleados de prueba).
+- **V2__create_auth_tables.sql**: Módulo Auth:
+  - `admin_accounts` (cuenta admin de RRHH, login único para TECHFORB)
+  - `admin_sessions` (sesiones activas/cerradas para auditoría y revocación)
+- **V2_1__seed_auth.sql**: Datos de ejemplo sólo para Auth (cuenta administradora de TECHFORB).
 
-   Cada funcionalidad reside en `src/main/java/com/techforb/rrhh/modules/{modulo}`. 
-   Las capas son: `domain`, `application`, `infrastructure` y `api` según el patrón ejemplo (`colaboradores`).
+## Orden y convenciones de migraciones
 
----
+- Cada módulo funcional agrega su migración a `db/migration/`:
+  - V{n}__create_{modulo}_tables.sql (esquema)
+  - V{n}_1__seed_{modulo}.sql (datos de ejemplo)
+- Convenciones:
+  - Tablas `snake_case` en inglés, plurales.
+  - PK: BIGINT UNSIGNED AUTO_INCREMENT
+  - FK: mismo tipo exacto, ON DELETE RESTRICT
+  - Auditoría: `created_at`, `updated_at`, `deleted_at` donde corresponda
+  - Engine: InnoDB, charset/collation utf8mb4
+  - Estados como VARCHAR con CHECK
+  - Datos sensibles COMMENT 'PII'
 
-## Otros
+## Conexión
 
-- Migraciones Flyway en `src/main/resources/db/migration`.
-- Documentación Swagger: http://localhost:8080/swagger-ui.html
-- Mailpit UI: http://localhost:8025
+Servidor MySQL expuesto en `${DB_PORT:-3306}`:
+  - Usuario: `${DB_USER}`
+  - Password: `${DB_PASSWORD}`
+  - Base: `${DB_NAME}`
 
+> *Nunca usar estos valores de ejemplo en entornos reales.*
