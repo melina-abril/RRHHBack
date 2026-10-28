@@ -1,53 +1,62 @@
-# Base de Datos · Gestión de RR.HH
+# Gestión de RR.HH · Base de Datos (MySQL 8 + Flyway)
 
-Esta base implementa el modelo relacional para el sistema Gestión de Recursos Humanos sobre **MySQL 8.4** con migraciones **Flyway** (aplicadas automáticamente al levantar el entorno con Docker Compose).
+Este proyecto contiene la base de datos para el sistema de Gestión de Recursos Humanos, implementada en MySQL 8.4, con migraciones gestionadas por Flyway.
 
-## Estructura de carpetas
+## Estructura
 
-- `db/migration/`: Migraciones Flyway versionadas (esquema y seeds). NO modificar los archivos de migraciones ya aplicadas.
-- `.env.example`: Variables de entorno para MySQL y Flyway (copiar a `.env`).
-- `docker-compose.yml`: Levanta MySQL y aplica migraciones con Flyway.
+- **Tablas compartidas (core, V1):**
+  - `departments`: áreas internas de la organización (nombre único por área).
+  - `positions`: puestos/roles internos, referencian departamento.
+  - `employees`: empleados (legajo, datos personales/laborales, referencia a departamento, puesto y jefe, borrado lógico y control de auditoría).
 
-## Comandos para levantar y aplicar migraciones
+- **Módulos actuales:**
+  - **auth** (Inicio de sesión): sin tablas propias
+  - **inicio** (Pantalla principal): sin tablas propias
 
-```bash
-cp .env.example .env
-docker compose up -d
-```
-Esto levanta MySQL y aplica todas las migraciones de `db/migration/` en orden.
+## Cómo levantar la base de datos
 
-## Orden y detalle de migraciones
+1. Copiar el archivo de variables de entorno de ejemplo:
+    ```sh
+    cp .env.example .env
+    ```
+2. Levantar los servicios y aplicar las migraciones:
+    ```sh
+    docker compose up -d
+    ```
+   Esto inicializará MySQL y ejecutará todas las migraciones de `db/migration/` en orden.
 
-### Compartidas (V1)
-- **V1__create_core_tables.sql**: Tablas compartidas: `departments`, `positions`, `employees` (legajos y estructura básica de RRHH)
-- **V1_1__seed_core.sql**: Datos de ejemplo para los core tables (áreas, puestos y empleados ficticios)
+## Orden de migraciones
 
-### Módulo de Autenticación (V2)
-- **V2__create_auth_tables.sql**: Tablas de autenticación de la cuenta administradora:
-    - `admin_users`: Administradores (MVP = 1)
-    - `user_sessions`: Sesiones autenticadas (auditoría/login tokens)
-- **V2_1__seed_auth.sql**: Usuario administrador de ejemplo (correo: sofia.gomez@example.com)
-
-### Módulo Pantalla Principal (V3)
-- **V3__create_inicio_module.sql**: No crea tablas propias. La pantalla principal consulta métricas de las tablas compartidas y de otros módulos.
+1. `V1__create_core_tables.sql` – crea las tablas compartidas `departments`, `positions` y `employees`.
+2. (`V1_1__seed_core.sql`) – agrega datos de ejemplo a las tablas core (no se incluyen seeds dummy aquí).
+3. (Próximos): migraciones de módulos funcionales según el plan del MVP.
 
 ## Tablas por módulo
 
-- **core**: departments, positions, employees
-- **auth**: admin_users, user_sessions
-- **inicio**: *(sin tablas propias)*
+| Módulo  | Tablas propias                                                                     |
+|---------|-------------------------------------------------------------------------------------|
+| core    | departments, positions, employees                                                  |
+| auth    | *Sin tablas propias (usa employees)*                                               |
+| inicio  | *Sin tablas propias*                                                               |
 
-## Notas y convenciones
+> Todos los módulos utilizan las tablas core mediante claves foráneas. Ningún módulo debe duplicar empleados, departamentos ni puestos.
 
-- Tablas solo de empleados, puestos y departamentos se crean como *compartidas* y se referencian con claves foráneas.
-- Los módulos de RR.HH. crearán sus propias tablas en migraciones posteriores siguiendo el mismo esquema.
-- Cada tabla incluye columnas de auditoría (created_at, updated_at); las de personas/usuarios incluyen deleted_at para borrado lógico.
-- Los seeds referencian las claves foráneas por subconsulta, nunca por id fijo.
+## Notas de desarrollo
 
-## Acceso a la base
+- Las migraciones siguen la convención: `V{n}__create_{modulo}_tables.sql` (esquema) y `V{n}_1__seed_{modulo}.sql` (datos de ejemplo).
+- Todos los scripts SQL están en `db/migration/` y deben ejecutarse automáticamente por Flyway al levantar el servicio `flyway`.
+- Las credenciales y nombre de la base provienen del archivo `.env`.
+- No modificar ni borrar migraciones ya aplicadas; crear nuevas versiones para cambios al esquema.
 
-- Conectarse con los valores de `.env`.
-- Por defecto:
-    - puerto: 3306
-    - usuario: hr_app
-    - nombre base: hr
+## Scripts y conexión manual
+
+- Puedes conectarte a la base con:
+    ```sh
+    mysql -h 127.0.0.1 -u hr_app -pchange-me hr
+    ```
+   (usar los valores definidos en `.env`)
+
+## Próximos pasos
+
+- Agregar migraciones de módulos funcionales a medida que se desarrollen (siguiendo la arquitectura: módulos de ausencias/licencias, liquidación de sueldos, evaluaciones, capacitaciones, selección, etc.).
+- Agregar y poblar los archivos de seeds según corresponda para cada módulo funcional.
