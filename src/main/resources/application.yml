@@ -1,0 +1,52 @@
+# Configuración base para Gestión de RR.HH
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/rrhh?allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${DB_USER:rrhh}
+    password: ${DB_PASSWORD:rrhh2024}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    show-sql: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USER:rrhh}
+    password: ${MAIL_PASS:rrhhcorreo}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+  thymeleaf:
+    enabled: false
+
+app:
+  jwt-secret: ${JWT_SECRET:9c16f299421141fcb0667adad2123a0d6bee0650012736b8eec4e41c8f17e5c3}
+  front-url: ${FRONT_URL:http://localhost:*}
+  storage-path: ${STORAGE_PATH:./storage}
+  enlace-ausencia-horas: ${ENLACE_AUSENCIA_HORAS:48}
+
+logging:
+  level:
+    org:
+      springframework:
+        security: INFO
+        orm: DEBUG
+        jdbc: DEBUG
+        data:
+          jpa: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

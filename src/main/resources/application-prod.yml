@@ -1,0 +1,22 @@
+# Perfil de producción (variables desde el entorno)
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USER}
+    password: ${MAIL_PASS}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    show-sql: false
+
+app:
+  jwt-secret: ${JWT_SECRET}
+  front-url: ${FRONT_URL}
+  storage-path: ${STORAGE_PATH}
+  enlace-ausencia-horas: ${ENLACE_AUSENCIA_HORAS}
