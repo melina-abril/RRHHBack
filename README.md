@@ -1,68 +1,61 @@
-# Gestión de RR.HH · Base de datos
+# Gestión de RR.HH - Backend
 
-Base de datos MySQL 8.4 con migraciones Flyway para el sistema de Gestión de Recursos Humanos.
+Backend de la plataforma de Gestión de Recursos Humanos para TECHFORB.
 
-## Comandos de arranque
+## Requisitos previos
 
-1. Copiar variables de entorno de ejemplo:
+- Java 21+
+- Maven 3.9+
+- Docker (para la base de datos de desarrollo y SMTP de prueba)
 
-   cp .env.example .env
+## Comandos principales
 
-2. Levantar la base y aplicar las migraciones:
+1. Clonar el repositorio y setear variables de entorno:
 
-   docker compose up -d
+```sh
+docker compose up -d # Levanta PostgreSQL y Mailpit
+cp .env.example .env # Editar según corresponda
+```
 
-- El servicio `db` levanta MySQL en el puerto `3306` (configurable por la variable de entorno `DB_PORT`).
-- El servicio `flyway` aplica todas las migraciones en orden a la base configurada.
-- Los datos se almacenan en un volumen Docker llamado `hr-db-data`.
+2. Arrancar la app (en otra terminal):
 
-## Migraciones
+```sh
+./mvnw spring-boot:run
+```
 
-Las migraciones se encuentran en la carpeta `db/migration/`.
-- Los archivos comienzan con un prefijo de versión, por ejemplo: `V1__create_core_tables.sql`.
-- Todo seed de datos de ejemplo usa el sufijo `_1__seed_{modulo}.sql` con la misma versión.
-- **NO modificar migraciones ya aplicadas.** Para cambios usar una nueva migración con la siguiente versión.
+3. Acceso OpenAPI: http://localhost:8080/swagger-ui.html
 
-### Orden de migraciones
+## Estructura de módulos
 
-1. **V1__create_core_tables.sql** : Tablas compartidas esenciales. Siempre corre primero.
-2. (Futuras migraciones de módulos: V2, V3, etc.)
+- **colaboradores**: legajo de empleados, listado, ficha, edición, movimientos laborales.
+- **employee-list**: listado paginado/filtrado (vía /api/employee-list).
+- **employee-profile**: ficha individual del colaborador.
+- **work-movements**: cambios laborales, egresos y reingresos.
+- **projects-assignments**: clientes, proyectos y asignaciones a colaboradores.
+- **employee-technical-profile**: perfil profesional y documentación/archivos de empleados.
 
-### Tablas de la base
-
-#### Compartidas (core):
-- `departments`: áreas/departamentos de la organización.
-- `positions`: puestos (depende de áreas/departamentos).
-- `employees`: legajos y datos principales de colaboradores.
+> Para detalles y contratos de cada endpoint, consultar la documentación Swagger generada y los paquetes de los módulos en `src/main/java/com/techforb/rrhh/modules/`.
 
 
-#### Módulos actuales (v1):
-- `auth`  — Inicio de sesión: no agrega tablas (uso de tablas core).
-- `inicio` — Pantalla principal: solo consultas, no agrega tablas.
+## Variables de entorno
 
-## Datos de ejemplo
+Ver `.env.example`. Obligatorio definir: 
+- DB_URL
+- DB_USER
+- DB_PASSWORD
+- JWT_SECRET
+- MAIL_HOST
+- MAIL_PORT
+- FRONT_URL
 
-Datos ficticios de las tablas compartidas están en el seed correspondiente (a generar en futuras migraciones según corresponda). Los ids jamás se fijan a mano: cualquier relación usa `SELECT ... WHERE ...` por clave de negocio, nunca ids numéricos hardcodeados.
+## Base de datos
 
-## Conectarse a la base
+- Esquema gestionado por Flyway. Cada módulo tiene su migración propia en `src/main/resources/db/migration/`.
+- En desarrollo usa PostgreSQL 16 y Mailpit.
+- Usuario admin inicial: usar variable.
 
-- Usuario: `${DB_USER}` (por defecto: hr_app)
-- Contraseña: `${DB_PASSWORD}`
-- Base: `${DB_NAME}`
+## Seguridad
 
-Con MySQL Workbench o DBeaver, host `localhost`, puerto como en `DB_PORT` (por defecto: 3306).
-
-## Migraciones existentes
-
-- **db/migration/V1__create_core_tables.sql**
-  - Tablas: departments, positions, employees
-
-(Actualmente los módulos `auth` e `inicio` no requieren tablas propias; futuros módulos agregarán migraciones propias en la carpeta.)
-
-## Notas sobre el modelo
-
-- Todas las FK referencian por el mismo tipo que la clave principal (`BIGINT UNSIGNED`).
-- Las tablas de personas y legajos usan borrado lógico (`deleted_at DATETIME(3) NULL`).
-- Datos sensibles (documentos, email, etc.) señalados con `COMMENT 'PII'`.
-- Las migraciones siguen las convenciones descritas en este archivo y en la arquitectura del sistema.
-
+- Login: POST `/api/auth/login` (JWT por cookie HttpOnly 'rrhh_session'), logout: `/api/auth/logout`.
+- Rol ADMIN_RRHH requerido para gestionar.
+- Auditar eventos de módulos importantes. Consultar auditoría en la app o la DB.
