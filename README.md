@@ -1,57 +1,61 @@
-# Gestión de RR.HH — Backend (Spring Boot)
+# Gestión de RR.HH - Backend
 
-Plataforma web para centralizar la gestión administrativa de Recursos Humanos en TECHFORB.
+Backend de la plataforma de Gestión de Recursos Humanos para TECHFORB.
 
-## Requisitos
+## Requisitos previos
+
 - Java 21+
 - Maven 3.9+
-- Docker (para el stack local: PostgreSQL + Mailpit)
+- Docker (para la base de datos de desarrollo y SMTP de prueba)
 
-## Levantar entorno de desarrollo
+## Comandos principales
 
-1. Clonar el repo y posicionarse en la raíz
-2. Copiar `.env.example` a `.env` y personalizar si es necesario
-3. Levantar base y mailpit:
+1. Clonar el repositorio y setear variables de entorno:
 
-```bash
-docker compose up -d
+```sh
+docker compose up -d # Levanta PostgreSQL y Mailpit
+cp .env.example .env # Editar según corresponda
 ```
 
-4. Levantar el backend (perfil desarrollo):
+2. Arrancar la app (en otra terminal):
 
-```bash
+```sh
 ./mvnw spring-boot:run
 ```
 
-- Swagger: <http://localhost:8080/swagger-ui.html>
-- Health: <http://localhost:8080/actuator/health>
-- API base: <http://localhost:8080/api>
+3. Acceso OpenAPI: http://localhost:8080/swagger-ui.html
 
-Acceso inicial: usuario ADMIN_RRHH creado al migrar las tablas (ver migraciones en `src/main/resources/db/migration`).
+## Estructura de módulos
 
-## Módulos
-Cada dominio implementa:
-- `modules/{modulo}/domain` — modelo puro
-- `modules/{modulo}/application` — casos de uso/servicios
-- `modules/{modulo}/infrastructure` — entidades JPA, repositorios, adaptadores
-- `modules/{modulo}/api` — REST
+- **colaboradores**: legajo de empleados, listado, ficha, edición, movimientos laborales.
+- **employee-list**: listado paginado/filtrado (vía /api/employee-list).
+- **employee-profile**: ficha individual del colaborador.
+- **work-movements**: cambios laborales, egresos y reingresos.
+- **projects-assignments**: clientes, proyectos y asignaciones a colaboradores.
+- **employee-technical-profile**: perfil profesional y documentación/archivos de empleados.
 
-## Migraciones
-Se aplican automáticamente al levantar:
-- Modelo base y usuario admin: `V1__esquema_base.sql`
-- Colaboradores y movimientos laborales: `V2__colaboradores.sql`
+> Para detalles y contratos de cada endpoint, consultar la documentación Swagger generada y los paquetes de los módulos en `src/main/java/com/techforb/rrhh/modules/`.
 
-## Variables importantes
-- `DB_URL`, `DB_USER`, `DB_PASSWORD`: conexión PostgreSQL
-- `JWT_SECRET`: clave JWT (>=32 chars para HS256)
-- `MAIL_HOST`/`MAIL_PORT`: SMTP local — por defecto Mailpit
-- `FRONT_URL`: origen frontend (CORS)
 
-## Comandos útiles
-- Build: `./mvnw -B package`
-- Run:  `./mvnw spring-boot:run`
-- Test: `./mvnw test`
-- Testcontainers/ArchUnit: consultá los tests bajo `src/test/java/com/techforb/rrhh`
+## Variables de entorno
 
-## Arquitectura
-Monolito modular. Todas las entidades extienden `AuditableEntity`, claves ajenas siempre filtran por `organizacion_id` desde JWT ('org' claim).
+Ver `.env.example`. Obligatorio definir: 
+- DB_URL
+- DB_USER
+- DB_PASSWORD
+- JWT_SECRET
+- MAIL_HOST
+- MAIL_PORT
+- FRONT_URL
+
+## Base de datos
+
+- Esquema gestionado por Flyway. Cada módulo tiene su migración propia en `src/main/resources/db/migration/`.
+- En desarrollo usa PostgreSQL 16 y Mailpit.
+- Usuario admin inicial: usar variable.
+
+## Seguridad
+
+- Login: POST `/api/auth/login` (JWT por cookie HttpOnly 'rrhh_session'), logout: `/api/auth/logout`.
+- Rol ADMIN_RRHH requerido para gestionar.
+- Auditar eventos de módulos importantes. Consultar auditoría en la app o la DB.

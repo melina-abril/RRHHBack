@@ -1,22 +1,23 @@
-version: '3.9'
+version: '3.8'
 services:
   db:
     image: postgres:16
+    container_name: rrhh_db
     restart: unless-stopped
-    container_name: rrhh-pgsql
-    environment:
-      POSTGRES_DB: rrhh
-      POSTGRES_USER: rrhh_user
-      POSTGRES_PASSWORD: rrhh_password
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: rrhh
+      POSTGRES_USER: rrhh
+      POSTGRES_PASSWORD: rrhh2024
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - pgdata_rrhh:/var/lib/postgresql/data
   mailpit:
     image: axllent/mailpit:latest
     container_name: mailpit
+    restart: unless-stopped
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      - "1025:1025" # SMTP
+      - "8025:8025" # UI
 volumes:
-  postgres-data:
+  pgdata_rrhh:
