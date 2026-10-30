@@ -1,0 +1,22 @@
+# Perfil de desarrollo local
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/rrhh?allowPublicKeyRetrieval=true&useSSL=false
+    username: rrhh
+    password: rrhh2024
+  mail:
+    host: localhost
+    port: 1025
+    username: rrhh
+    password: rrhhcorreo
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    show-sql: true
+
+app:
+  jwt-secret: 9c16f299421141fcb0667adad2123a0d6bee0650012736b8eec4e41c8f17e5c3
+  front-url: http://localhost:4200
+  storage-path: ./storage
+  enlace-ausencia-horas: 48
