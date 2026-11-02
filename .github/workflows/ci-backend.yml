@@ -1,0 +1,39 @@
+# Generado por AI IT Framework (Generar código).
+# Compila el código generado en cada push a sus ramas. Para usar uno propio, agrégalo como archivo fijo
+# de la arquitectura en .github/workflows/ y este deja de generarse.
+name: CI backend
+
+on:
+  push:
+    branches:
+      - "ai/codegen-backend-**"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Compilar
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.build ? 0 : 1)"; then
+            npm run build
+          elif [ -f tsconfig.json ]; then
+            npx -p typescript tsc --noEmit
+          else
+            echo "::error::package.json no tiene script build ni hay tsconfig.json: no hay qué compilar"
+            exit 1
+          fi
