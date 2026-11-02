@@ -1,64 +1,39 @@
-# Sistema de Gestión de Recursos Humanos · Base de datos (Firestore)
+# Gestión de RR.HH. — Firebase
 
-Este proyecto contiene la capa de base de datos del sistema de Gestión de RR.HH. sobre Cloud Firestore y Firebase Auth, con scripts de carga y documentación del modelo de datos. La API de la aplicación se desarrolla en la carpeta `functions/` y no forma parte de esta capa.
+Este repositorio reúne Cloud Firestore, Firebase Auth y la API en `functions/`. Las reglas de Firestore impiden el acceso directo de clientes: la API utiliza el SDK de administración.
 
-## Arranque local (emuladores)
+## Desarrollo local
 
-1. Clonar el repo y ubicarse en la raíz del proyecto.
-2. Instalar dependencias:
-   ```sh
-   npm install
-   npm run functions:install
-   ```
-3. Levantar los emuladores de Firestore y Auth (abre el panel en http://127.0.0.1:4005):
-   ```sh
-   npm start
-   ```
-4. En otra terminal, cargar los datos iniciales sobre los emuladores:
-   ```sh
-   npm run seed:emulator
-   ```
-5. Usuarios para ingresar desde el sistema (contraseña `Demo1234!`):
+Se requiere Node.js 22 o superior. En una terminal:
 
-   | Rol        | Usuario                      |
-   |------------|-----------------------------|
-   | ADMIN      | laura.gomez@example.com      |
-   | EMPLOYEE   | martin.perez@example.com     |
-   | HR_ANALYST | analia.torres@example.com    |
+```sh
+npm install
+npm run functions:install
+npm start
+```
 
-   - Todos los usuarios usan la contraseña: **Demo1234!**
-   - El login del sistema utiliza Firebase Auth contra estos usuarios.
+En otra terminal, cargá los datos de ejemplo:
 
-## Despliegue a un proyecto real
+```sh
+npm run seed:emulator
+```
 
-1. Conectarse al proyecto con `firebase use --add` y configurar las credenciales:
-   ```sh
-   export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
-   export FIREBASE_PROJECT_ID=mi-proyecto
-   ```
-2. Deploy de reglas, índices y funciones:
-   ```sh
-   npm run deploy
-   ```
-3. Cargar los datos iniciales en la nube:
-   ```sh
-   npm run seed
-   ```
+El panel de emuladores está en http://127.0.0.1:4005. Los puertos configurados son 8085 para Firestore, 9099 para Auth y 5002 para Functions. También se pueden iniciar únicamente los emuladores de Firestore y Auth con `npm run emulators:db`.
 
-## Colecciones de Firestore
+El usuario administrador de ejemplo es `clara.vega@example.com`, con rol `ADMIN` y contraseña `Demo1234!`. Cambiá o eliminá estas credenciales antes de utilizar datos de ejemplo fuera de un entorno de pruebas.
 
-Estas colecciones y campos son la fuente de verdad del sistema. Todos los módulos internos (employees, payroll, requests, notices y overtime) referencian empleados, áreas y puestos definidos aquí.
+## Colecciones y cargas
 
-- users: usuarios autenticados y sus datos de sesión (usuarios de ejemplo: ver arriba)
-- departments: áreas internas
-- positions: puestos
-- employees: colaboradores y excolaboradores
+`scripts/seed.js` ejecuta los archivos de `firestore/seeds/` en orden de versión y registra los aplicados en `_seedHistory`; no vuelve a ejecutar una versión aplicada. Para modificar datos ya cargados, agregá una versión nueva.
 
-Consulta el esquema y las descripciones de campos en `docs/collections/core.md`.
+- Core (`V1__core.js`): `users`, `departments`, `positions` y `employees`. El usuario de ejemplo se crea tanto en Firebase Auth como en `users`. Esquema: `docs/collections/core.md`.
+- Edición de colaborador (`employee-editing`): utiliza las colecciones compartidas; no crea colecciones propias.
+- Movimientos laborales (`employment-movements`): no crea colecciones propias en esta generación.
+- Clientes, proyectos y asignaciones (`project-assignments`): `clients`, `clientCountries`, `projects`, `projectContacts`, `projectAssignments` y `assignmentEvents`. Esquema: `docs/collections/project-assignments.md`.
+- Perfil profesional y documentación (`professional-profiles`): no crea colecciones propias en esta generación.
 
-Los módulos funcionales agregan sus propias colecciones según su documentación.
+Los índices compuestos se declaran en `firestore.indexes.json`; Firestore administra automáticamente los índices de campo individual.
 
-## API y otras capas
+## Despliegue
 
-- El backend de la aplicación vive en `functions/` y se conecta a esta base usando el SDK de admin (`firebase-admin`).
-- No edites estas colecciones ni sus scripts de carga manualmente por fuera de los seeds versionados.
+Seleccioná primero tu proyecto real con `firebase use --add`. Después ejecutá `npm run deploy` para desplegar Functions, reglas e índices. Para cargar los datos en ese proyecto, configurá `GOOGLE_APPLICATION_CREDENTIALS` y `FIREBASE_PROJECT_ID` en el entorno y ejecutá `npm run seed`. La carga incluye el usuario y la contraseña de ejemplo: no la ejecutes en producción sin revisar previamente los scripts de carga.
