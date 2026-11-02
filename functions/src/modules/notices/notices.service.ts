@@ -6,8 +6,7 @@ import {
   NoticeDto,
   NoticeRequest,
   NoticeFilters,
-  NoticeDeliveryState,
-  NOTICE_DELIVERY_STATES
+  NoticeDeliveryState
 } from './notices.dto';
 import { NoticeRecord, noticesRepository } from './notices.repository';
 import { currentUser } from '../../shared/auth/session-user';
@@ -32,7 +31,7 @@ function matchesFilters(notice: NoticeRecord, filters: NoticeFilters): boolean {
   // Por ahora sólo búsqueda por search (en subject o body) y estado de entrega.
   const term = filters.search?.toLowerCase() ?? '';
   const matchesTerm = !term || notice.subject.toLowerCase().includes(term) || notice.body.toLowerCase().includes(term);
-  const matchesDepartment = !filters.department || (notice.targetDepartments && notice.targetDepartments.includes(filters.department));
+  const matchesDepartment = !filters.department || (notice.targetDepartments?.includes(filters.department) ?? false);
   const matchesState = !filters.deliveryState || notice.deliveryState === filters.deliveryState;
   return matchesTerm && matchesDepartment && matchesState;
 }

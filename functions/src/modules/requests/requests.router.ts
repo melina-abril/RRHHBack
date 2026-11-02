@@ -14,9 +14,9 @@ export const requestsRouter = Router();
 // Filtros de búsqueda
 function parseRequestFilters(req: Request): RequestFilters {
   const status = queryText(req.query, 'status');
-  let parsedStatus = null;
+  let parsedStatus: RequestFilters['status'] = null;
   if (status && (REQUEST_STATUSES as readonly string[]).includes(status)) {
-    parsedStatus = status;
+    parsedStatus = status as RequestFilters['status'];
   }
   let type = queryText(req.query, 'type');
   const validTypes = ['VACATION', 'LEAVE', 'ABSENCE'];

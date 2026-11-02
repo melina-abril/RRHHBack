@@ -1,16 +1,12 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { NotFoundError, BusinessRuleError } from '../../shared/http/errors';
-import { toIsoDate, toIsoDateTime } from '../../shared/firestore';
+import { toIsoDate } from '../../shared/firestore';
 import { Page, PageQuery, toPage } from '../../shared/http/page';
 import {
   VacationRequestDoc,
   LeaveRequestDoc,
   AbsenceRequestDoc,
   RequestDto,
-  RequestFilters,
-  REQUEST_STATUSES,
-  LEAVE_TYPES,
-  ABSENCE_TYPES
+  RequestFilters
 } from './requests.dto';
 import { requestsRepository } from './requests.repository';
 

@@ -2,7 +2,7 @@ import { Request, Router } from 'express';
 import { requireRole } from '../../shared/auth/auth.middleware';
 import { BodyReader } from '../../shared/http/body-reader';
 import { parsePageQuery } from '../../shared/http/page';
-import { COMPENSATION_STATUSES, OVERTIME_STATUSES, OvertimeRequestRequest, AuthorizeOvertimeRequestRequest } from './overtime.dto';
+import { COMPENSATION_STATUSES, OvertimeRequestRequest, AuthorizeOvertimeRequestRequest } from './overtime.dto';
 import { overtimeService } from './overtime.service';
 
 /**
