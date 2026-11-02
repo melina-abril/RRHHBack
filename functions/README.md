@@ -1,102 +1,44 @@
-# API REST · Gestión de RR.HH.
+# API de Gestión de RR.HH
 
-Este backend implementa la API REST del sistema de Gestión de Recursos Humanos sobre Firebase Cloud Functions, Express 5 y Firestore. La autenticación es por Firebase Auth (el login/logout lo hace el front), y la sesión/datos del usuario se leen de la colección `users/` en Firestore.
+API Express 5 en una Cloud Function HTTP (`api`). Firebase Auth verifica el ID token Bearer y Firestore almacena los datos. Todas las rutas `/api` requieren sesión; las acciones de escritura de asignaciones requieren el rol `ADMIN`. El inicio y cierre de sesión los realiza el frontend con Firebase Auth; `GET /api/auth/me` devuelve el usuario de la sesión.
 
-## Arranque local (emulador)
+## Desarrollo local
 
-1. Instala las dependencias raíz (del monorepo) y de las funciones:
+Desde la raíz del repositorio:
 
-   ```bash
-   npm install            # en la raíz del repo (instala paquetes del front y la base)
-   npm --prefix functions install   # instala dependencias del backend (API)
-   ```
-
-2. Build de las funciones (TypeScript → lib/):
-
-   ```bash
-   npm --prefix functions run build
-   ```
-
-3. (Con firebase-tools y emuladores instalados) Levanta toda la plataforma en modo desarrollo (API / base de datos / reglas):
-
-   ```bash
-   npm start                     # en la raíz (levanta el front con proxy a la API local)
-   # O en otra terminal, para solo la API y la base con el emulador:
-   firebase emulators:start --only functions,firestore
-   ```
-
-   El backend estará expuesto en local en:
-   - http://127.0.0.1:5002/{proyecto}/us-central1/api/api
-
-4. Carga los datos de ejemplo (usuarios, tablas de negocio, seeds, etc):
-
-   ```bash
-   npm run seed:emulator       # en la raíz (prepara usuarios demo, seed de la base)
-   ```
-
-## Despliegue
-
-```bash
-npm --prefix functions run build
-firebase deploy --only functions
+```sh
+npm install
+npm run functions:install
+npm start
 ```
 
-El deploy sube la función Cloud Function HTTP única (`api`) y la app queda publicada según la configuración de Hosting.
+En otra terminal, para cargar los datos de ejemplo en el emulador:
 
-## Módulos de la API
+```sh
+npm run seed:emulator
+```
 
-### employees
-- `GET /api/employees`: página de colaboradores activos e inactivos (búsqueda/filtros)
-- `POST /api/employees`: alta de colaborador
-- `GET /api/employees/:id`: ficha individual
-- `PUT /api/employees/:id`: edición
-- `POST /api/employees/:id/leave`: egreso (baja)
-- `POST /api/employees/:id/rejoin`: reingreso
+Para comprobar la compilación de la API: `npm --prefix functions run build`. La URL local de la función es `http://127.0.0.1:5002/{project-id}/us-central1/api`; las rutas siguientes se agregan a esa URL, por ejemplo `/api/project-assignments/projects`. Sustituye `{project-id}` por el ID del proyecto configurado en Firebase. Consulta `scripts/demo-users.js` y la documentación de la raíz para la creación y las credenciales de los usuarios de ejemplo; la API no crea cuentas.
 
-### payroll
-- `GET /api/payroll-periods`: períodos de nómina
-- `GET /api/payslips/:employeeId`: pagos y conceptos de un colaborador
-- `POST /api/payslips`: registrar pago, adicional o excepción
-- `GET /api/bonuses/:employeeId`: bonos asignados e historial
-- `POST /api/bonuses`: asignar bono
+## Rutas
 
-### requests
-- `GET /api/requests`: lista de solicitudes de vacaciones/licencias/ausencias
-- `GET /api/requests/:id`: detalle de solicitud
-- `POST /api/requests/:id/approve`: aprobar solicitud
-- `POST /api/requests/:id/reject`: rechazar solicitud
+Las rutas GET requieren sesión; las rutas POST y PUT requieren además el rol `ADMIN`.
 
-### notices
-- `GET /api/notices`: comunicados
-- `POST /api/notices`: crea y envía comunicado
-- `GET /api/notices/:id`: detalle y estado de comunicado
+| Método | Ruta | Rol adicional |
+| --- | --- | --- |
+| GET | `/api/project-assignments/clients` | Ninguno |
+| POST | `/api/project-assignments/clients` | ADMIN |
+| GET | `/api/project-assignments/clients/{clientId}/countries` | Ninguno |
+| POST | `/api/project-assignments/clients/{clientId}/countries` | ADMIN |
+| GET | `/api/project-assignments/projects` | Ninguno |
+| POST | `/api/project-assignments/projects` | ADMIN |
+| GET | `/api/project-assignments/projects/{projectId}/contacts` | Ninguno |
+| POST | `/api/project-assignments/projects/{projectId}/contacts` | ADMIN |
+| GET | `/api/project-assignments/employees/{employeeId}` | Ninguno |
+| POST | `/api/project-assignments/employees/{employeeId}` | ADMIN |
+| PUT | `/api/project-assignments/employees/{employeeId}/{id}` | ADMIN |
+| POST | `/api/project-assignments/employees/{employeeId}/{id}/finalize` | ADMIN |
 
-### overtime
-- `GET /api/overtime-requests`: solicitudes de horas extras
-- `POST /api/overtime-requests`: registra nueva solicitud
-- `POST /api/overtime-requests/:id/authorize`: autoriza y registra horas trabajadas/compensaciones
+Los módulos Edición de colaborador, Movimientos laborales y Perfil profesional y documentación no declaran servicios HTTP en esta generación; por eso no se montan rutas para ellos.
 
-### dashboard y home
-No exponen rutas del backend (pantalla principal solo navega y consulta indicadores desde los módulos previos).
-
-### auth
-El login/logout lo hace el front contra Firebase Auth. La API solo atiende:
-- `GET /api/auth/me` — retorna el usuario autenticado (id, name, email, role)
-
-## Seguridad y sesión
-- Todas las rutas requieren un ID token de Firebase válido en el header `Authorization: Bearer ...`.
-- El usuario debe estar habilitado en `users/{uid}` (role, activo).
-- Los roles válidos están definidos en el sistema (mismos que en la base y App).
-
-## Colecciones de Firestore
-Este backend usa las siguientes colecciones (ver detalles en docs/collections/*.md):
-- `users` (usuarios de sesión, con rol)
-- `departments`, `positions`, `employees`, `movements` (gestión de empleados)
-- `payrollPeriods`, `payslips`, `bonuses` (sueldos y bonos)
-- `vacationRequests`, `leaveRequests`, `absenceRequests` (solicitudes)
-- `notices` (comunicados)
-- `overtimeRequests` (horas extras)
-
-## Usuarios de ejemplo
-En el seed se crean usuarios demo para login. En desarrollo puedes autenticarte desde el front con correo y contraseña cargados por los scripts.
-
+El esquema de colecciones y las semillas de Firestore pertenecen a la capa de base de datos del mismo repositorio. Consulta `docs/collections/core.md` y `docs/collections/project-assignments.md` para conocer sus campos.
