@@ -1,8 +1,7 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { toIsoDate, toIsoDateTime, fromIsoDate } from '../../shared/firestore';
 import { NotFoundError, ConflictError, BusinessRuleError } from '../../shared/http/errors';
 import { PageQuery, toPage, Page } from '../../shared/http/page';
-import { EmployeeDoc, EmployeeDto, EmployeeRequest, EmployeesFilters, MovementDoc, MovementDto, EmployeeStatus, EMPLOYEE_STATUSES, MOVEMENT_TYPES } from './employees.dto';
+import { EmployeeDoc, EmployeeDto, EmployeeRequest, EmployeesFilters, MovementDoc, MovementDto } from './employees.dto';
 import { employeesRepository } from './employees.repository';
 import { SessionUser } from '../../shared/auth/session-user';
 
@@ -97,7 +96,8 @@ export const employeesService = {
     }
     const updated = await employeesRepository.update(id, {
       ...request,
-      updatedAt: Timestamp.now(),
+      birthDate: fromIsoDate(request.birthDate),
+      hireDate: fromIsoDate(request.hireDate),
     });
     if (!updated) throw new NotFoundError('No se pudo actualizar el colaborador.');
     await employeesRepository.addMovement(updated.id, {

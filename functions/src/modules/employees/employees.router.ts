@@ -3,7 +3,7 @@ import { requireRole } from '../../shared/auth/auth.middleware';
 import { BodyReader } from '../../shared/http/body-reader';
 import { parsePageQuery, queryText } from '../../shared/http/page';
 import { employeesService } from './employees.service';
-import { EMPLOYEE_STATUSES, EmployeeRequest } from './employees.dto';
+import { EMPLOYEE_STATUSES, EmployeeRequest, EmployeeStatus, EmployeesFilters } from './employees.dto';
 import { currentUser } from '../../shared/auth/session-user';
 
 export const employeesRouter = Router();
@@ -29,11 +29,11 @@ function readEmployeeRequest(req: Request): EmployeeRequest {
 
 // GET /api/employees?search=&status=&departmentId=&positionId=&page=&size=
 employeesRouter.get('/', async (req, res) => {
-  const filters = {
+  const filters: EmployeesFilters = {
     search: queryText(req.query, 'search'),
     status: (() => {
       const s = queryText(req.query, 'status');
-      return (s && (EMPLOYEE_STATUSES as readonly string[]).includes(s)) ? s : null;
+      return (s && (EMPLOYEE_STATUSES as readonly string[]).includes(s)) ? s as EmployeeStatus : null;
     })(),
     departmentId: queryText(req.query, 'departmentId'),
     positionId: queryText(req.query, 'positionId'),

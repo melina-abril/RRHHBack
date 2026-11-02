@@ -1,4 +1,4 @@
-import type { DocumentData, Timestamp } from 'firebase-admin/firestore';
+import type { DocumentData } from 'firebase-admin/firestore';
 import { db } from '../../shared/firestore';
 import { NoticeDoc } from './notices.dto';
 

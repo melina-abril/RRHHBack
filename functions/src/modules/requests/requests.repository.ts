@@ -1,5 +1,4 @@
 import { db } from '../../shared/firestore';
-import type { DocumentData } from 'firebase-admin/firestore';
 import type {
   VacationRequestDoc,
   LeaveRequestDoc,

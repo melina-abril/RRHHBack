@@ -1,10 +1,10 @@
-import type { DocumentData, Query } from 'firebase-admin/firestore';
-import { db } from '../../shared/firestore';
+import { DocumentData, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { createWithNextCode, db, fromIsoDate } from '../../shared/firestore';
 import {
   EmployeeDoc,
+  EmployeeRequest,
   MovementDoc,
-  EmployeeStatus,
-  MovementType
+  EmployeeStatus
 } from './employees.dto';
 
 /**
@@ -45,18 +45,19 @@ export const employeesRepository = {
     const doc = snapshot.docs[0];
     return doc ? toEmployeeRecord(doc.id, doc.data()) : null;
   },
-  async create(employeeData: Omit<EmployeeDoc, 'employeeNumber' | 'createdAt' | 'updatedAt' | 'status' | 'deletedAt'>): Promise<EmployeeRecord> {
+  async create(request: EmployeeRequest): Promise<EmployeeRecord> {
     // Usa createWithNextCode para id/employeeNumber correlativo
-    const now = new Date();
-    const { createWithNextCode, fromIsoDate } = await import('../../shared/firestore');
-    const { id, data } = await createWithNextCode('employees', 'E-', eid => ({
-      ...employeeData,
+    const now = Timestamp.now();
+    const { id, data } = await createWithNextCode('employees', 'E-', (eid): EmployeeDoc => ({
+      ...request,
+      birthDate: fromIsoDate(request.birthDate),
+      hireDate: fromIsoDate(request.hireDate),
       employeeNumber: eid,
       status: 'ACTIVE',
       terminationDate: null,
       deletedAt: null,
-      createdAt: fromIsoDate(employeeData.hireDate),
-      updatedAt: fromIsoDate(employeeData.hireDate),
+      createdAt: now,
+      updatedAt: now,
     }));
     return { id, ...data };
   },
@@ -64,7 +65,7 @@ export const employeesRepository = {
     const ref = employeesCol().doc(id);
     const doc = await ref.get();
     if (!doc.exists || doc.data()?.deletedAt) return null;
-    const updateData = { ...updates, updatedAt: new Date() };
+    const updateData = { ...updates, updatedAt: Timestamp.now() };
     await ref.update(updateData);
     const updated = await ref.get();
     return toEmployeeRecord(id, updated.data()!);
@@ -73,8 +74,7 @@ export const employeesRepository = {
     const ref = employeesCol().doc(id);
     const doc = await ref.get();
     if (!doc.exists || doc.data()?.deletedAt) return null;
-    const { fromIsoDate } = await import('../../shared/firestore');
-    const updatePayload: Partial<EmployeeDoc> = { status, updatedAt: new Date() };
+    const updatePayload: Partial<EmployeeDoc> = { status, updatedAt: Timestamp.now() };
     if (status === 'TERMINATED') {
       updatePayload.terminationDate = terminationDate ? fromIsoDate(terminationDate) : null;
     } else if (status === 'ACTIVE') {
@@ -91,7 +91,6 @@ export const employeesRepository = {
   },
   async addMovement(employeeId: string, movement: Omit<MovementDoc, 'createdAt'>): Promise<MovementRecord> {
     const movementsCol = employeesCol().doc(employeeId).collection('movements');
-    const { FieldValue } = await import('firebase-admin/firestore');
     const ref = await movementsCol.add({ ...movement, createdAt: FieldValue.serverTimestamp() });
     const doc = await ref.get();
     return toMovementRecord(doc.id, doc.data()!);

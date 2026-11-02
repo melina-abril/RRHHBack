@@ -4,12 +4,9 @@ import { NotFoundError, ConflictError, BusinessRuleError } from '../../shared/ht
 import { Page, PageQuery, toPage } from '../../shared/http/page';
 import {
   AuthorizeOvertimeRequestRequest,
-  CompensationStatus,
-  OVERTIME_STATUSES,
   OvertimeRequestDoc,
   OvertimeRequestDto,
-  OvertimeRequestRequest,
-  OvertimeRequestStatus
+  OvertimeRequestRequest
 } from './overtime.dto';
 import { OvertimeRequestRecord, overtimeRepository } from './overtime.repository';
 

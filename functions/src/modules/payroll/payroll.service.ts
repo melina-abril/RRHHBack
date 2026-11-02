@@ -1,10 +1,9 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { createWithNextCode, toIsoDate, toIsoDateTime, fromIsoDate } from '../../shared/firestore';
-import { NotFoundError, ConflictError } from '../../shared/http/errors';
-import { PayrollPeriodDto, PayrollPeriodStatus, PayslipDto, PayslipStatus, PayslipRequest, BonusDto, BonusRequest, BonusStatus } from './payroll.dto';
-import { payrollRepository } from './payroll.repository';
+import { createWithNextCode, toIsoDate, fromIsoDate } from '../../shared/firestore';
+import { PayrollPeriodDto, PayslipDto, PayslipRequest, BonusDto, BonusRequest } from './payroll.dto';
+import { BonusRecord, PayrollPeriodRecord, PayslipRecord, payrollRepository } from './payroll.repository';
 
-const toPayrollPeriodDto = (record: payrollRepository.PayrollPeriodRecord): PayrollPeriodDto => ({
+const toPayrollPeriodDto = (record: PayrollPeriodRecord): PayrollPeriodDto => ({
   id: record.id,
   name: record.name,
   startDate: toIsoDate(record.startDate) ?? '',
@@ -12,7 +11,7 @@ const toPayrollPeriodDto = (record: payrollRepository.PayrollPeriodRecord): Payr
   status: record.status,
 });
 
-const toPayslipDto = (record: payrollRepository.PayslipRecord): PayslipDto => ({
+const toPayslipDto = (record: PayslipRecord): PayslipDto => ({
   id: record.id,
   employeeId: record.employeeId,
   periodId: record.periodId,
@@ -24,7 +23,7 @@ const toPayslipDto = (record: payrollRepository.PayslipRecord): PayslipDto => ({
   status: record.status,
 });
 
-const toBonusDto = (record: payrollRepository.BonusRecord): BonusDto => ({
+const toBonusDto = (record: BonusRecord): BonusDto => ({
   id: record.id,
   employeeId: record.employeeId,
   periodId: record.periodId,

@@ -3,7 +3,6 @@ import { requireRole } from '../../shared/auth/auth.middleware';
 import { BodyReader } from '../../shared/http/body-reader';
 import { payrollService } from './payroll.service';
 import {
-  PAYROLL_PERIOD_STATUSES,
   PAYSLIP_STATUSES,
   BONUS_STATUSES,
   BONUS_CONCEPTS,
