@@ -21,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       - name: Instalar dependencias
@@ -33,7 +33,9 @@ jobs:
             npm run build
           elif [ -f tsconfig.json ]; then
             npx -p typescript tsc --noEmit
+          elif [ -n "$(find . -path ./node_modules -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print -quit)" ]; then
+            find . -path ./node_modules -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | xargs -0 -n 1 node --check
           else
-            echo "::error::package.json no tiene script build ni hay tsconfig.json: no hay qué compilar"
+            echo "::error::No hay script build, tsconfig.json ni archivos .js: no hay qué compilar"
             exit 1
           fi

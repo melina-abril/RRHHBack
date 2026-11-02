@@ -1,95 +1,73 @@
-import type { DocumentData, Timestamp } from 'firebase-admin/firestore';
-import { db, createWithNextCode, fromIsoDate } from '../../shared/firestore';
+import type { DocumentData } from 'firebase-admin/firestore';
+import { db, createWithNextCode } from '../../shared/firestore';
 import { EmployeeDoc } from './employees.dto';
 
-/** Única pieza que accede a Firestore: colecciones compartidas (employees). Devuelve { id, ...doc } */
-const collection = () => db.collection('employees');
+const collectionName = 'employees';
+const prefix = 'E-';
+
+const collection = () => db.collection(collectionName);
 
 export type EmployeeRecord = EmployeeDoc & { id: string };
 
-function toRecord(id: string, data: DocumentData): EmployeeRecord {
-  return { id, ...(data as EmployeeDoc) };
-}
+const toRecord = (id: string, data: DocumentData): EmployeeRecord => ({ id, ...(data as EmployeeDoc) });
 
 export const employeesRepository = {
-  /** Devuelve todos los empleados, opcionalmente filtrados */
   async findAll(): Promise<EmployeeRecord[]> {
-    // Listado completo (por ahora, ordenado por lastName y firstName); los filtros se aplican en el servicio
-    const snapshot = await collection().orderBy('lastName').orderBy('firstName').get();
-    return snapshot.docs
-      .filter((doc) => !(doc.data().deletedAt))
-      .map((doc) => toRecord(doc.id, doc.data()));
+    const snapshot = await collection()
+      .where('deletedAt', '==', null)
+      .orderBy('lastName')
+      .orderBy('firstName')
+      .get();
+    return snapshot.docs.map((doc) => toRecord(doc.id, doc.data()));
   },
 
   async findById(id: string): Promise<EmployeeRecord | null> {
-    const doc = await collection().doc(id).get();
-    if (!doc.exists || doc.data()?.deletedAt) return null;
-    return toRecord(doc.id, doc.data()!);
+    const snapshot = await collection().doc(id).get();
+    const data = snapshot.data();
+    if (!data || data['deletedAt']) return null;
+    return toRecord(snapshot.id, data);
   },
 
-  /** Alta nuevo colaborador: id correlativo con createWithNextCode (prefijo 'E-') */
+  async findByEmployeeNumber(employeeNumber: string): Promise<EmployeeRecord | null> {
+    const snapshot = await collection().where('employeeNumber', '==', employeeNumber).limit(1).get();
+    const doc = snapshot.docs[0];
+    return doc ? toRecord(doc.id, doc.data()) : null;
+  },
+
+  /** Alta: usa createWithNextCode para generar legajo único correlativo (E-0004...) */
   async create(data: Omit<EmployeeDoc, 'employeeNumber' | 'createdAt' | 'updatedAt' | 'deletedAt'>): Promise<EmployeeRecord> {
-    const { id, data: docData } = await createWithNextCode('employees', 'E-', (employeeNumber) => ({
+    const now = new Date();
+    const { id, data: doc } = await createWithNextCode(collectionName, prefix, (employeeNumber) => ({
       ...data,
       employeeNumber,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deletedAt: null,
+      createdAt: null, // lo pone el trigger/script
+      updatedAt: null,
+      deletedAt: null
     }));
-    await collection().doc(id).set(docData);
-    return { id, ...docData } as EmployeeRecord;
+    return { id, ...doc };
   },
 
-  /** Edita datos del colaborador existente (NUNCA cambia el employeeNumber, ni lo repite) */
-  async update(id: string, updates: Partial<EmployeeDoc> & { updatedAt: Timestamp }): Promise<EmployeeRecord | null> {
-    const ref = collection().doc(id);
-    const doc = await ref.get();
-    if (!doc.exists || doc.data()?.deletedAt) return null;
-    const before = doc.data() as EmployeeDoc;
-    const after = { ...before, ...updates };
-    await ref.set(after);
-    return { id, ...after };
+  async update(id: string, data: Partial<EmployeeDoc>): Promise<EmployeeRecord> {
+    await collection().doc(id).update({ ...data, updatedAt: null });
+    const snapshot = await collection().doc(id).get();
+    return toRecord(id, snapshot.data()!);
   },
 
-  /** Marca al colaborador como terminado (egreso): actualiza terminationDate y status */
-  async terminate(id: string, terminationDate: Timestamp, updatedAt: Timestamp): Promise<EmployeeRecord | null> {
-    const ref = collection().doc(id);
-    const doc = await ref.get();
-    if (!doc.exists || doc.data()?.deletedAt) return null;
-    const before = doc.data() as EmployeeDoc;
-    const after: EmployeeDoc = {
-      ...before,
+  async softDelete(id: string, terminationDate: Date | null): Promise<void> {
+    await collection().doc(id).update({
       status: 'TERMINATED',
-      terminationDate,
-      updatedAt,
-    };
-    await ref.set(after);
-    return { id, ...after };
+      terminationDate: terminationDate ? terminationDate : null,
+      deletedAt: null // puede quedar en null, el historial es por estado
+    });
   },
 
-  /** Reingreso de un ex-colaborador: reutiliza el id (employeeNumber), borra terminationDate y pone nueva hireDate */
-  async reinstate(id: string, updates: {
-    hireDate: Timestamp,
-    departmentId: string,
-    positionId: string,
-    managerId: string | null,
-    updatedAt: Timestamp,
-  }): Promise<EmployeeRecord | null> {
-    const ref = collection().doc(id);
-    const doc = await ref.get();
-    if (!doc.exists || doc.data()?.deletedAt) return null;
-    const before = doc.data() as EmployeeDoc;
-    const after: EmployeeDoc = {
-      ...before,
-      hireDate: updates.hireDate,
-      departmentId: updates.departmentId,
-      positionId: updates.positionId,
-      managerId: updates.managerId,
-      terminationDate: null,
+  async rejoin(id: string, hireDate: Date): Promise<EmployeeRecord> {
+    await collection().doc(id).update({
       status: 'ACTIVE',
-      updatedAt: updates.updatedAt,
-    };
-    await ref.set(after);
-    return { id, ...after };
+      hireDate: hireDate,
+      terminationDate: null
+    });
+    const snapshot = await collection().doc(id).get();
+    return toRecord(id, snapshot.data()!);
   }
 };

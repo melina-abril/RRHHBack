@@ -1,22 +1,19 @@
 /**
- * Tipos del módulo Gestión de Empleados
- * - EmployeeDoc: forma EXACTA del documento Firestore employees/{id}
- * - EmployeeDto: respuesta de la API (fechas en string ISO)
- * - EmployeeRequest: alta/edición
- * - EmployeeFilters: filtros de búsqueda del listado
- * - Enums: listas y tipos
+ * Tipos del módulo de gestión de empleados. EmployeeDoc corresponde a la colección employees en Firestore,
+ * con sus campos EXACTOS. EmployeeDto es la respuesta al front con las fechas como string.
  */
 import type { Timestamp } from 'firebase-admin/firestore';
 
-export const EMPLOYEE_STATUSES = ['ACTIVE', 'ON_LEAVE', 'TERMINATED'] as const;
+/** Estados posibles del colaborador. */
+export const EMPLOYEE_STATUSES = ['ACTIVE', 'TERMINATED'] as const;
 export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
 
-/** Documento employees/{id} (colección compartida) */
+/** Documento employees/{id} en Firestore */
 export interface EmployeeDoc {
-  employeeNumber: string; // id de negocio correlativo, ej. "E-0001"
+  employeeNumber: string; // id correlativo (ej. 'E-0001')
   firstName: string;
   lastName: string;
-  documentType: string; // ej. "DNI", "CUIT"
+  documentType: string;
   documentNumber: string;
   birthDate: Timestamp;
   email: string;
@@ -26,62 +23,53 @@ export interface EmployeeDoc {
   departmentId: string;
   positionId: string;
   managerId: string | null;
-  status: EmployeeStatus; // 'ACTIVE' | 'ON_LEAVE' | 'TERMINATED'
+  status: EmployeeStatus;
   deletedAt: Timestamp | null;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
 }
 
-/** Respuesta de la API (EmployeeDto): campos relevantes para la vista (fechas string ISO) */
+/** Lo que devuelve la API al front (fechas como string ISO, campos legibles) */
 export interface EmployeeDto {
   id: string;
   employeeNumber: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   documentType: string;
   documentNumber: string;
-  birthDate: string;         // YYYY-MM-DD
+  birthDate: string | null;
   email: string;
   phone: string;
-  hireDate: string;          // YYYY-MM-DD
-  terminationDate: string | null; // YYYY-MM-DD o null
+  hireDate: string | null;
+  terminationDate: string | null;
   departmentId: string;
   positionId: string;
   managerId: string | null;
   status: EmployeeStatus;
-  createdAt: string;         // ISO 8601
-  updatedAt: string;         // ISO 8601
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
-/** Body de alta y edición */
+/** Body para crear o editar empleado (excluye campos internos, estado y fechas automáticas) */
 export interface EmployeeRequest {
   firstName: string;
   lastName: string;
   documentType: string;
   documentNumber: string;
-  birthDate: string;        // YYYY-MM-DD
+  birthDate: string;
   email: string;
   phone: string;
-  hireDate: string;         // YYYY-MM-DD
+  hireDate: string;
   departmentId: string;
   positionId: string;
   managerId: string | null;
 }
 
-/** Body de reingreso: solo la fecha y datos laborales que pueden haber cambiado (no se repite todo) */
-export interface EmployeeReinstateRequest {
-  hireDate: string;         // YYYY-MM-DD
-  departmentId: string;
-  positionId: string;
-  managerId: string | null;
-}
-
-/** Filtros del listado (por query): búsqueda, estado, cliente, proyecto, categoría */
+/** Filtros del listado empleados (legajo o nombre, estado) */
 export interface EmployeeFilters {
   search: string | null;
   status: EmployeeStatus | null;
   departmentId: string | null;
   positionId: string | null;
-  clientId: string | null;
-  projectId: string | null;
 }
