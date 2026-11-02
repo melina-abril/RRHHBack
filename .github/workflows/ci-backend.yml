@@ -1,6 +1,6 @@
-# Generado por AI IT Framework (Generar código).
-# Compila el código generado en cada push a sus ramas. Para usar uno propio, agrégalo como archivo fijo
-# de la arquitectura en .github/workflows/ y este deja de generarse.
+# CI de la API (arquitectura Firebase Functions): compila functions/ con tsc en cada push a las ramas generadas.
+# Reemplaza al workflow automático de la plataforma, que compila desde la raíz del repo y ahí solo está la capa
+# Firestore (sin build ni tsconfig): pasaba en verde sin revisar el código de functions/.
 name: CI backend
 
 on:
@@ -26,16 +26,6 @@ jobs:
         with:
           node-version: "22"
       - name: Instalar dependencias
-        run: npm install --no-audit --no-fund
+        run: npm --prefix functions install --no-audit --no-fund
       - name: Compilar
-        run: |
-          if node -e "process.exit(require('./package.json').scripts?.build ? 0 : 1)"; then
-            npm run build
-          elif [ -f tsconfig.json ]; then
-            npx -p typescript tsc --noEmit
-          elif [ -n "$(find . -path ./node_modules -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print -quit)" ]; then
-            find . -path ./node_modules -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | xargs -0 -n 1 node --check
-          else
-            echo "::error::No hay script build, tsconfig.json ni archivos .js: no hay qué compilar"
-            exit 1
-          fi
+        run: npm --prefix functions run build
