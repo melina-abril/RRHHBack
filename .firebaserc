@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-rrhh"
+    "default": "demo-rrhh",
+    "tech-dev": "rrhh-tech-dev"
   }
 }
