@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Toda la lectura y escritura pasa por el backend (SDK de admin, que no usa estas reglas):
+// ningún cliente web o móvil accede directo a la base de RRHH.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
