@@ -1,0 +1,24 @@
+{
+  "name": "firebase-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Proyecto Firebase del sistema: Firestore (reglas, índices y scripts de carga), Auth y la API en functions/",
+  "scripts": {
+    "functions:install": "npm --prefix functions install",
+    "functions:build": "npm --prefix functions run build",
+    "start": "npm run functions:build && firebase emulators:start",
+    "emulators:db": "firebase emulators:start --only firestore,auth",
+    "seed": "node scripts/seed.js",
+    "seed:emulator": "node scripts/seed.js --emulator",
+    "deploy": "npm run functions:build && firebase deploy"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.34.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
