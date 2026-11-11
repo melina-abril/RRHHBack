@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "layer": "database",
+  "kind": "structure",
+  "generatedAt": "2026-11-11T15:54:47.160Z",
+  "system": {
+    "uid": "3gwNp1rgzqO2F7l1sxjV",
+    "name": "Gestión de RR.HH"
+  },
+  "architecture": {
+    "name": "Cloud Firestore · scripts de carga",
+    "stack": "firestore"
+  },
+  "repositoryPath": "https://github.com/melina-abril/RRHHBack",
+  "ports": [
+    {
+      "port": 4005,
+      "file": "firebase.json"
+    },
+    {
+      "port": 8085,
+      "file": "firebase.json"
+    }
+  ],
+  "environment": [
+    {
+      "name": "FIREBASE_PROJECT_ID",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "FIRESTORE_EMULATOR_HOST",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "GCLOUD_PROJECT",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "METADATA_SERVER_DETECTION",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    }
+  ],
+  "modules": [],
+  "shared": [],
+  "database": {
+    "engine": "firestore",
+    "containers": [],
+    "connectionEnvVars": [],
+    "tables": [],
+    "firebase": {
+      "projectId": "demo-app",
+      "emulatorHost": "127.0.0.1:8085"
+    }
+  },
+  "relations": [
+    "Backend: la base es firestore en el puerto 4005, 8085; conéctate con las variables ninguna."
+  ],
+  "readme": "# Base de datos · Gestión de RR.HH\n\nCloud Firestore en modo nativo. Esta es la estructura inicial: todavía no hay colecciones, scripts de carga ni índices compuestos de funcionalidades.\n\n## Requisitos\n\n- Node.js 24 o superior\n- npm\n\n## Emulador y carga local\n\n```sh\nnpm install\nnpm run emulator\n```\n\nEn otra terminal:\n\n```sh\nnpm run seed:emulator\n```\n\nEl emulador de Firestore escucha en `127.0.0.1:8085` y su panel está en `127.0.0.1:4005`. También se puede ejecutar `npm run test:seeds` para iniciar el emulador y ejecutar la carga en un solo comando. En esta estructura inicial no hay datos para cargar.\n\n## Scripts y colecciones\n\n| Script | Colecciones |\n|---|---|\n| Ninguno todavía | Ninguna |\n\nLos pasos de core y módulos agregarán scripts versionados en `firestore/seeds/` y documentarán las colecciones que creen en `docs/collections/`. El runner `scripts/seed.js` aplica los scripts en orden de versión y registra los aplicados. No modifiques un script ya aplicado; agrega uno con una versión nueva. Para revisar la carga, ejecuta `npm run check`.\n\n## Proyecto real\n\nConfigura `GOOGLE_APPLICATION_CREDENTIALS` con la ruta a las credenciales de tu proyecto y `FIREBASE_PROJECT_ID` con su identificador antes de ejecutar `npm run seed`. No guardes credenciales en el repositorio. Para desplegar las reglas e índices, selecciona el proyecto Firebase correspondiente y ejecuta `npm run deploy:firestore`.\n\nLas reglas actuales deniegan todas las lecturas y escrituras de clientes. El backend debe acceder mediante el SDK de administración; ese SDK no está sujeto a estas reglas.\n"
+}
