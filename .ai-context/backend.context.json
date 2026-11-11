@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "layer": "backend",
+  "kind": "structure",
+  "generatedAt": "2026-11-11T19:37:08.761Z",
+  "system": {
+    "uid": "3gwNp1rgzqO2F7l1sxjV",
+    "name": "Gestión de RR.HH"
+  },
+  "architecture": {
+    "name": "Node.js 24 · Express 5 con sesión y base de datos",
+    "stack": "node-express"
+  },
+  "repositoryPath": "https://github.com/melina-abril/RRHHBack",
+  "ports": [
+    {
+      "port": 8080,
+      "file": "src/config/env.ts"
+    }
+  ],
+  "environment": [
+    {
+      "name": "COOKIE_SECURE",
+      "example": "",
+      "files": [
+        "src/config/env.ts"
+      ]
+    },
+    {
+      "name": "FIREBASE_PROJECT_ID",
+      "example": "demo-app",
+      "files": [
+        "src/config/database.ts"
+      ]
+    },
+    {
+      "name": "FIRESTORE_EMULATOR_HOST",
+      "example": "",
+      "files": [
+        "src/config/database.ts"
+      ]
+    },
+    {
+      "name": "FRONT_URL",
+      "example": "http://localhost:4200",
+      "files": [
+        "src/config/env.ts"
+      ]
+    },
+    {
+      "name": "JWT_SECRET",
+      "example": "",
+      "files": [
+        "src/config/env.ts"
+      ]
+    },
+    {
+      "name": "NODE_ENV",
+      "example": "",
+      "files": [
+        "src/config/env.ts"
+      ]
+    },
+    {
+      "name": "PORT",
+      "example": "8080",
+      "files": [
+        "src/config/env.ts"
+      ]
+    },
+    {
+      "name": "SESSION_HOURS",
+      "example": "8",
+      "files": [
+        "src/config/env.ts"
+      ]
+    }
+  ],
+  "modules": [],
+  "shared": [],
+  "backend": {
+    "basePath": "/api",
+    "endpoints": [
+      {
+        "moduleName": "",
+        "method": "GET",
+        "path": "/api/health",
+        "name": "health",
+        "description": "Archivo fijo o compartido: src/app.ts"
+      },
+      {
+        "moduleName": "",
+        "method": "POST",
+        "path": "/api/auth/login",
+        "name": "login",
+        "description": "Archivo fijo o compartido: src/shared/auth/auth.router.ts"
+      },
+      {
+        "moduleName": "",
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "name": "logout",
+        "description": "Archivo fijo o compartido: src/shared/auth/auth.router.ts"
+      },
+      {
+        "moduleName": "",
+        "method": "GET",
+        "path": "/api/auth/me",
+        "name": "me",
+        "description": "Archivo fijo o compartido: src/shared/auth/auth.router.ts"
+      }
+    ],
+    "authEndpoints": [
+      {
+        "moduleName": "",
+        "method": "POST",
+        "path": "/api/auth/login",
+        "name": "login",
+        "description": "Archivo fijo o compartido: src/shared/auth/auth.router.ts"
+      },
+      {
+        "moduleName": "",
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "name": "logout",
+        "description": "Archivo fijo o compartido: src/shared/auth/auth.router.ts"
+      },
+      {
+        "moduleName": "",
+        "method": "GET",
+        "path": "/api/auth/me",
+        "name": "me",
+        "description": "Archivo fijo o compartido: src/shared/auth/auth.router.ts"
+      }
+    ],
+    "entityTables": [],
+    "corsEnvVars": [
+      "FRONT_URL"
+    ],
+    "databaseEnvVars": [
+      "FIREBASE_PROJECT_ID",
+      "FIRESTORE_EMULATOR_HOST"
+    ]
+  },
+  "relations": [
+    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 4 endpoints de backend.endpoints con el mismo method y path.",
+    "Frontend: el inicio de sesión usa POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me.",
+    "Frontend: el backend habilita CORS con las variables FRONT_URL; el origen del front tiene que estar ahí.",
+    "Base de datos: el backend se conecta con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST (mismos nombres en el .env.example de la base)."
+  ],
+  "readme": ""
+}
