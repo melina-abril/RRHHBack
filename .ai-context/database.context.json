@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "layer": "database",
+  "kind": "structure",
+  "generatedAt": "2026-11-11T19:35:11.530Z",
+  "system": {
+    "uid": "3gwNp1rgzqO2F7l1sxjV",
+    "name": "Gestión de RR.HH"
+  },
+  "architecture": {
+    "name": "Cloud Firestore · scripts de carga",
+    "stack": "firestore"
+  },
+  "repositoryPath": "https://github.com/melina-abril/RRHHBack",
+  "ports": [
+    {
+      "port": 8085,
+      "file": "firebase.json"
+    }
+  ],
+  "environment": [
+    {
+      "name": "FIREBASE_PROJECT_ID",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "FIRESTORE_EMULATOR_HOST",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "GCLOUD_PROJECT",
+      "example": "",
+      "files": [
+        "scripts/seed.js"
+      ]
+    }
+  ],
+  "modules": [],
+  "shared": [],
+  "database": {
+    "engine": "firestore",
+    "containers": [],
+    "connectionEnvVars": [
+      "FIREBASE_PROJECT_ID",
+      "FIRESTORE_EMULATOR_HOST",
+      "GCLOUD_PROJECT"
+    ],
+    "tables": [],
+    "firebase": {
+      "projectId": "demo-app",
+      "emulatorHost": "127.0.0.1:8085"
+    }
+  },
+  "relations": [
+    "Backend: la base es firestore (en desarrollo, emulador en 127.0.0.1:8085, proyecto demo-app); conéctate con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, GCLOUD_PROJECT."
+  ],
+  "readme": "# Base de datos · Gestión de RR.HH\n\nCloud Firestore en modo nativo. Requiere Node.js 24 o superior. El backend accede mediante Firebase Admin SDK; las reglas bloquean el acceso directo de clientes.\n\n## Emulador y carga de datos\n\n```sh\nnpm install\nnpm run emulator\n```\n\nEn otra terminal:\n\n```sh\nnpm run seed:emulator\n```\n\nEl emulador de Firestore escucha en `127.0.0.1:8085` y su panel está en el puerto `4005`. Para ejecutar la carga y cerrar el emulador al terminar, usa `npm run test:seeds`. El runner aplica los scripts de `firestore/seeds` en orden de versión y registra los aplicados. `npm run check` comprueba los scripts disponibles.\n\n## Scripts y colecciones\n\n| Orden | Script | Colecciones |\n|---|---|---|\n| — | Todavía no hay scripts de carga | Todavía no hay colecciones de funcionalidades |\n\nLos pasos de core y módulos incorporarán sus propios scripts versionados y documentarán sus colecciones en `docs/collections`. No se deben modificar scripts ya aplicados.\n\n## Proyecto real\n\nConfigura `GOOGLE_APPLICATION_CREDENTIALS` con la ruta de una cuenta de servicio autorizada y `FIREBASE_PROJECT_ID` con el identificador de tu proyecto. Después ejecuta `npm run seed` para cargar los datos y `npm run deploy:firestore` para desplegar las reglas y los índices. No uses las credenciales de producción en el emulador ni las incorpores al repositorio.\n"
+}

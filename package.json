@@ -1,0 +1,23 @@
+{
+  "name": "app-firestore",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emulator": "firebase emulators:start --only firestore",
+    "seed": "node scripts/seed.js",
+    "seed:emulator": "node scripts/seed.js --emulator",
+    "test:seeds": "firebase emulators:exec --only firestore \"node scripts/seed.js --emulator\"",
+    "deploy:firestore": "firebase deploy --only firestore:rules,firestore:indexes",
+    "check": "node scripts/seed.js --check"
+  },
+  "dependencies": {
+    "firebase-admin": "~14.5.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "~15.35.0"
+  }
+}
