@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "layer": "database",
-  "kind": "structure",
-  "generatedAt": "2026-11-11T19:35:11.530Z",
+  "kind": "features",
+  "generatedAt": "2026-11-12T13:11:00.484Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -41,7 +41,35 @@
       ]
     }
   ],
-  "modules": [],
+  "modules": [
+    {
+      "moduleName": "authentication",
+      "title": "Inicio de sesión",
+      "features": [
+        "Inicio de sesión"
+      ],
+      "services": []
+    },
+    {
+      "moduleName": "dashboard",
+      "title": "Pantalla principal",
+      "features": [
+        "Pantalla principal"
+      ],
+      "services": []
+    },
+    {
+      "moduleName": "employee-management",
+      "title": "Alta de colaborador",
+      "features": [
+        "Alta de colaborador"
+      ],
+      "services": [],
+      "tables": [
+        "employees"
+      ]
+    }
+  ],
   "shared": [],
   "database": {
     "engine": "firestore",
@@ -51,14 +79,21 @@
       "FIRESTORE_EMULATOR_HOST",
       "GCLOUD_PROJECT"
     ],
-    "tables": [],
+    "tables": [
+      {
+        "name": "employees",
+        "moduleName": "employee-management",
+        "columns": null
+      }
+    ],
     "firebase": {
       "projectId": "demo-app",
       "emulatorHost": "127.0.0.1:8085"
     }
   },
   "relations": [
-    "Backend: la base es firestore (en desarrollo, emulador en 127.0.0.1:8085, proyecto demo-app); conéctate con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, GCLOUD_PROJECT."
+    "Backend: la base es firestore (en desarrollo, emulador en 127.0.0.1:8085, proyecto demo-app); conéctate con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, GCLOUD_PROJECT.",
+    "Backend: usa EXACTAMENTE estas tablas y columnas (database.tables), sin crear el esquema desde el ORM: employees."
   ],
-  "readme": "# Base de datos · Gestión de RR.HH\n\nCloud Firestore en modo nativo. Requiere Node.js 24 o superior. El backend accede mediante Firebase Admin SDK; las reglas bloquean el acceso directo de clientes.\n\n## Emulador y carga de datos\n\n```sh\nnpm install\nnpm run emulator\n```\n\nEn otra terminal:\n\n```sh\nnpm run seed:emulator\n```\n\nEl emulador de Firestore escucha en `127.0.0.1:8085` y su panel está en el puerto `4005`. Para ejecutar la carga y cerrar el emulador al terminar, usa `npm run test:seeds`. El runner aplica los scripts de `firestore/seeds` en orden de versión y registra los aplicados. `npm run check` comprueba los scripts disponibles.\n\n## Scripts y colecciones\n\n| Orden | Script | Colecciones |\n|---|---|---|\n| — | Todavía no hay scripts de carga | Todavía no hay colecciones de funcionalidades |\n\nLos pasos de core y módulos incorporarán sus propios scripts versionados y documentarán sus colecciones en `docs/collections`. No se deben modificar scripts ya aplicados.\n\n## Proyecto real\n\nConfigura `GOOGLE_APPLICATION_CREDENTIALS` con la ruta de una cuenta de servicio autorizada y `FIREBASE_PROJECT_ID` con el identificador de tu proyecto. Después ejecuta `npm run seed` para cargar los datos y `npm run deploy:firestore` para desplegar las reglas y los índices. No uses las credenciales de producción en el emulador ni las incorpores al repositorio.\n"
+  "readme": "# Gestión de RR.HH · Base de datos\n\nCloud Firestore en modo nativo. El backend accede mediante Firebase Admin SDK; el frontend no se conecta directamente a Firestore. Por eso, las reglas deniegan el acceso de clientes. No se requieren índices compuestos para las consultas definidas hasta ahora.\n\n## Desarrollo local\n\nRequiere Node.js 24 o posterior. Instala las dependencias y arranca el emulador de Firestore en `127.0.0.1:8085` (panel en el puerto `4005`):\n\n```sh\nnpm install\nnpm run emulator\n```\n\nEn otra terminal, carga los scripts versionados:\n\n```sh\nFIREBASE_PROJECT_ID=demo-app FIRESTORE_EMULATOR_HOST=127.0.0.1:8085 npm run seed:emulator\n```\n\nEl backend usa los mismos nombres de variables, `FIREBASE_PROJECT_ID` y `FIRESTORE_EMULATOR_HOST`, para conectarse al emulador; levanta en el puerto `8080`. El frontend levanta en el puerto `4200` y llama al backend bajo `/api`, sin acceso directo a Firestore.\n\n## Scripts y colecciones\n\nLos scripts de `firestore/seeds` se aplican en orden de versión. El runner `scripts/seed.js` registra cuáles se aplicaron; no modifiques un script ya aplicado. Para comprobar los scripts, ejecuta `npm run check`.\n\n| Módulo | Script | Colecciones |\n|---|---|---|\n| Inicio de sesión | Ninguno | Ninguna |\n| Pantalla principal | Ninguno | Ninguna |\n| Alta de colaborador | `firestore/seeds/V3__employee_management.js` | `employees` |\n\nEl esquema de `employees` se documenta en `docs/collections/employee-management.md`. Esta generación no incluye una colección compartida de usuarios ni datos de acceso; el aprovisionamiento de la cuenta administradora debe definirse junto con el módulo de autenticación del backend.\n\n## Proyecto Firebase\n\nPara cargar datos en un proyecto real, configura `FIREBASE_PROJECT_ID` y `GOOGLE_APPLICATION_CREDENTIALS` con valores propios antes de ejecutar `npm run seed`. Revisa las reglas y los índices antes de desplegarlos con `npm run deploy:firestore`. No uses las credenciales de producción en el emulador.\n"
 }
