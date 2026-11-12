@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "layer": "database",
+  "kind": "structure",
+  "generatedAt": "2026-11-12T18:12:19.102Z",
+  "system": {
+    "uid": "3gwNp1rgzqO2F7l1sxjV",
+    "name": "Gestión de RR.HH"
+  },
+  "architecture": {
+    "name": "Cloud Firestore · scripts de carga",
+    "stack": "firestore"
+  },
+  "repositoryPath": "https://github.com/melina-abril/RRHHBack",
+  "ports": [
+    {
+      "port": 8085,
+      "file": "firebase.json"
+    }
+  ],
+  "environment": [
+    {
+      "name": "ADMIN_PASSWORD",
+      "example": "",
+      "files": [
+        "scripts/create-admin.js"
+      ]
+    },
+    {
+      "name": "FIREBASE_PROJECT_ID",
+      "example": "",
+      "files": [
+        "scripts/create-admin.js",
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "FIRESTORE_EMULATOR_HOST",
+      "example": "",
+      "files": [
+        "scripts/create-admin.js",
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "GCLOUD_PROJECT",
+      "example": "",
+      "files": [
+        "scripts/create-admin.js",
+        "scripts/seed.js"
+      ]
+    },
+    {
+      "name": "MIN_PASSWORD_LENGTH",
+      "example": "",
+      "files": [
+        "scripts/create-admin.js"
+      ]
+    }
+  ],
+  "modules": [],
+  "shared": [],
+  "database": {
+    "engine": "firestore",
+    "containers": [],
+    "connectionEnvVars": [
+      "FIREBASE_PROJECT_ID",
+      "FIRESTORE_EMULATOR_HOST",
+      "GCLOUD_PROJECT"
+    ],
+    "tables": [],
+    "firebase": {
+      "projectId": "demo-app",
+      "emulatorHost": "127.0.0.1:8085"
+    }
+  },
+  "relations": [
+    "Backend: la base es firestore (en desarrollo, emulador en 127.0.0.1:8085, proyecto demo-app); conéctate con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, GCLOUD_PROJECT."
+  ],
+  "readme": "# Gestión de RR.HH. · Firestore\n\nEstructura inicial de Cloud Firestore. Todavía no hay colecciones, scripts de carga ni índices compuestos de funcionalidades.\n\n## Requisitos\n\n- Node.js 24 o superior.\n- Java para ejecutar el emulador de Firestore.\n\n## Desarrollo local\n\n```sh\nnpm install\nnpm run emulator\n```\n\nEl emulador escucha en `127.0.0.1:8085` y su panel está disponible en `http://127.0.0.1:4005`. Cuando se incorporen scripts de carga, ejecútalos en otra terminal:\n\n```sh\nnpm run seed:emulator\n```\n\nEl runner aplica los scripts de `firestore/seeds` en orden de versión y registra los aplicados. También puedes comprobarlos con `npm run check` y probarlos con `npm run test:seeds` una vez que existan.\n\n## Administración inicial\n\nCuando se incorpore el modelo de usuarios y se defina el código del rol administrador, crea la cuenta inicial con el script fijo; no agregues contraseñas a los scripts de carga:\n\n```sh\nnpm run create-admin:emulator -- --email=admin@example.com --name=\"Administrador\" --role=<CODIGO_ROL_ADMINISTRADOR>\n```\n\nPara restablecer su contraseña, repite el comando con `--reset`. En un entorno real, usa `npm run create-admin` con las credenciales de ese entorno. El script toma la contraseña de `ADMIN_PASSWORD` o genera una y la muestra una sola vez.\n\n## Despliegue\n\nConfigura un proyecto Firebase real y las credenciales correspondientes antes de ejecutar:\n\n```sh\nnpm run seed\nnpm run deploy:firestore\n```\n\nLas reglas actuales deniegan todas las lecturas y escrituras desde clientes. El backend con el SDK de administración no está sujeto a estas reglas.\n\n## Scripts y colecciones\n\n| Script | Colecciones |\n|---|---|\n| Ninguno todavía | Ninguna todavía |\n\nLos pasos posteriores incorporarán los scripts versionados y documentarán sus colecciones en `docs/collections`.\n"
+}
