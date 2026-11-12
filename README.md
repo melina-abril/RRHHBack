@@ -1,36 +1,27 @@
-# Gestión de RR.HH. · Firestore
+# Gestión de RR.HH. · Base de datos
 
-Base Cloud Firestore en modo nativo. Esta estructura inicial todavía no contiene colecciones, documentos de ejemplo ni scripts de carga de funcionalidades. Las reglas deniegan el acceso desde clientes; el backend deberá usar el SDK de administración.
-
-## Requisitos
-
-- Node.js 24 o posterior.
-- `npm install` para instalar las dependencias.
+Cloud Firestore en modo nativo. El backend accede mediante el SDK de administración; el frontend no se conecta directamente a Firestore. Por eso, `firestore.rules` deniega todas las lecturas y escrituras de clientes. Las colecciones y sus campos están documentados en `docs/collections/core.md`.
 
 ## Desarrollo local
 
-En una terminal, inicia el emulador de Firestore en `127.0.0.1:8085` y su panel en el puerto `4005`:
+Requiere Node.js 24 o posterior. Ejecuta `npm install` y, en una terminal, `npm run emulator`. El emulador escucha en `127.0.0.1:8085` y su panel está en el puerto `4005`. En otra terminal, ejecuta `npm run seed:emulator` para aplicar los scripts pendientes. `npm run check` permite consultar su estado; el runner registra los scripts aplicados en `_seedHistory`.
 
-```sh
-npm run emulator
-```
+El script inicial crea una cuenta administradora de demostración, `rrhh@example.com`, con la contraseña `Demo1234!` y el rol `ADMIN`. Úsala solo en el emulador; no conserves esa contraseña fuera de un entorno de demostración.
 
-En otra terminal, aplica los scripts de carga versionados disponibles:
+## Scripts y colecciones
 
-```sh
-npm run seed:emulator
-```
+| Script | Paso | Colecciones |
+|---|---|---|
+| `firestore/seeds/V1__core.js` | Core compartido | `users`, `employees` |
 
-Por ahora no hay scripts que aplicar. Cuando se agreguen, el runner los ejecutará por versión y registrará los aplicados en `_seedHistory`. También puedes ejecutar `npm run test:seeds` para iniciar el emulador, aplicar los scripts y cerrarlo al terminar.
+Los módulos `authentication`, `dashboard` y `employees` no crean colecciones propias en esta generación: utilizan las colecciones compartidas. No se requieren índices compuestos para las consultas documentadas en esta etapa.
 
-## Colecciones y scripts
+## Conexión con las otras capas
 
-Aún no se han generado colecciones ni scripts de carga. Las colecciones compartidas y las de cada módulo se documentarán en `docs/collections/` cuando se implementen. Los índices compuestos se agregarán a `firestore.indexes.json` conforme aparezcan consultas que los necesiten.
-
-## Administrador inicial
-
-Cuando exista la colección `users` y se haya definido el código del rol administrador, crea la cuenta con `npm run create-admin -- --email=admin@example.com --name="Administrador" --role=CODIGO_DEL_ROL_ADMINISTRADOR`. Sustituye el correo y el código de rol por los valores autorizados para tu entorno. El comando obtiene la contraseña de `ADMIN_PASSWORD` o genera una y la muestra una sola vez. Para restablecerla, vuelve a ejecutarlo con `--reset`. En el emulador, usa `npm run create-admin:emulator --` con los mismos argumentos. No incluyas contraseñas en scripts de carga.
+Para conectar el backend local al emulador, configura `FIREBASE_PROJECT_ID=demo-app` y `FIRESTORE_EMULATOR_HOST=127.0.0.1:8085` en su entorno. El backend atiende en el puerto `8080`; el frontend, en el `4200`, llama al backend bajo `/api` y no necesita credenciales de Firestore. Usa el mismo ID de proyecto al cargar datos y al iniciar el backend.
 
 ## Proyecto real
 
-Configura `GOOGLE_APPLICATION_CREDENTIALS` y `FIREBASE_PROJECT_ID` para el proyecto autorizado. Ejecuta `npm run seed` para aplicar los scripts disponibles y `npm run deploy:firestore` para publicar las reglas y los índices. Revisa el proyecto de destino antes de ejecutar estos comandos.
+Configura `FIREBASE_PROJECT_ID` con el ID del proyecto y `GOOGLE_APPLICATION_CREDENTIALS` con la ruta a una credencial autorizada; no establezcas `FIRESTORE_EMULATOR_HOST`. Ejecuta `npm run seed` para aplicar los scripts pendientes. Para crear la cuenta administradora con tus propias credenciales, ejecuta `npm run create-admin -- --email=admin@example.com --name="Administración de Recursos Humanos" --role=ADMIN`. Define `ADMIN_PASSWORD` en tu entorno o deja que la herramienta genere una contraseña que mostrará una sola vez; usa `--reset` para restablecerla. Sustituye o desactiva la cuenta de demostración antes de habilitar el acceso al proyecto real.
+
+Selecciona el proyecto Firebase correspondiente y ejecuta `npm run deploy:firestore` para publicar las reglas y los índices. El despliegue de reglas no carga datos: `npm run seed` es un paso separado.
