@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "layer": "backend",
-  "kind": "structure",
-  "generatedAt": "2026-11-11T19:37:08.761Z",
+  "kind": "features",
+  "generatedAt": "2026-11-12T13:31:45.242Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -13,6 +13,10 @@
   },
   "repositoryPath": "https://github.com/melina-abril/RRHHBack",
   "ports": [
+    {
+      "port": 4200,
+      "file": "docs/backend/README.md"
+    },
     {
       "port": 8080,
       "file": "src/config/env.ts"
@@ -76,11 +80,82 @@
       ]
     }
   ],
-  "modules": [],
+  "modules": [
+    {
+      "moduleName": "dashboard",
+      "title": "Pantalla principal",
+      "features": [
+        "Pantalla principal"
+      ],
+      "services": [
+        {
+          "method": "GET",
+          "path": "/api/dashboard/summary",
+          "name": "getDashboardSummary",
+          "description": "Devuelve la cantidad de colaboradores activos y los indicadores disponibles para la pantalla principal."
+        }
+      ]
+    },
+    {
+      "moduleName": "employee-management",
+      "title": "Alta de colaborador",
+      "features": [
+        "Alta de colaborador"
+      ],
+      "services": [
+        {
+          "method": "GET",
+          "path": "/api/employees",
+          "name": "listEmployees",
+          "description": "Devuelve un listado paginado de colaboradores, con búsqueda opcional por prefijo del nombre normalizado."
+        },
+        {
+          "method": "GET",
+          "path": "/api/employees/:id",
+          "name": "getEmployee",
+          "description": "Devuelve la ficha de un colaborador por su legajo; responde 404 si no existe."
+        },
+        {
+          "method": "POST",
+          "path": "/api/employees",
+          "name": "createEmployee",
+          "description": "Valida los datos personales y laborales, evita duplicados, genera un legajo único y registra al colaborador como activo."
+        }
+      ]
+    }
+  ],
   "shared": [],
   "backend": {
     "basePath": "/api",
     "endpoints": [
+      {
+        "moduleName": "dashboard",
+        "method": "GET",
+        "path": "/api/dashboard/summary",
+        "name": "getDashboardSummary",
+        "description": "Devuelve la cantidad de colaboradores activos y los indicadores disponibles para la pantalla principal."
+      },
+      {
+        "moduleName": "employee-management",
+        "method": "GET",
+        "path": "/api/employees",
+        "name": "listEmployees",
+        "description": "Devuelve un listado paginado de colaboradores, con búsqueda opcional por prefijo del nombre normalizado."
+      },
+      {
+        "moduleName": "employee-management",
+        "method": "GET",
+        "path": "/api/employees/:id",
+        "name": "getEmployee",
+        "description": "Devuelve la ficha de un colaborador por su legajo; responde 404 si no existe."
+      },
+      {
+        "moduleName": "employee-management",
+        "method": "POST",
+        "path": "/api/employees",
+        "name": "createEmployee",
+        "description": "Valida los datos personales y laborales, evita duplicados, genera un legajo único y registra al colaborador como activo."
+      },
       {
         "moduleName": "",
         "method": "GET",
@@ -143,10 +218,10 @@
     ]
   },
   "relations": [
-    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 4 endpoints de backend.endpoints con el mismo method y path.",
+    "Frontend: llama al backend en el puerto 4200, 8080 con el prefijo /api; consume SOLO los 8 endpoints de backend.endpoints con el mismo method y path.",
     "Frontend: el inicio de sesión usa POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me.",
     "Frontend: el backend habilita CORS con las variables FRONT_URL; el origen del front tiene que estar ahí.",
     "Base de datos: el backend se conecta con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST (mismos nombres en el .env.example de la base)."
   ],
-  "readme": ""
+  "readme": "# Gestión de RR.HH · Backend\n\nAPI REST con Node.js 24, Express 5 y TypeScript. El `README.md` de la raíz corresponde a la base de datos y no se modifica desde esta capa.\n\n## Desarrollo\n\nLevanta primero el emulador de Firestore según el `README.md` de la raíz. Después, desde la raíz del repositorio:\n\n```sh\nnpm install\nFIREBASE_PROJECT_ID=demo-app GCLOUD_PROJECT=demo-app FIRESTORE_EMULATOR_HOST=127.0.0.1:8085 FRONT_URL=http://localhost:4200 npm run dev\n```\n\nLa API escucha en el puerto `8080` por defecto; puedes cambiarlo con `PORT`. El frontend Angular escucha en `http://localhost:4200` y su proxy dirige `/api` a `http://localhost:8080`. Configura `FRONT_URL` para permitir ese origen con credenciales. El backend se conecta a Firestore mediante `FIREBASE_PROJECT_ID`, `GCLOUD_PROJECT` y `FIRESTORE_EMULATOR_HOST`; el frontend no accede directamente a la base.\n\nPara compilar y arrancar el código compilado:\n\n```sh\nnpm run build\nnpm start\n```\n\nEn producción configura `NODE_ENV=production`, un `JWT_SECRET` aleatorio de al menos 32 caracteres, el origen autorizado mediante `FRONT_URL` y las credenciales y el identificador de tu proyecto Firebase. No uses el emulador en producción. La configuración de sesión y conexión está en los archivos fijos `src/config/env.ts` y `src/config/database.ts`.\n\n## Sesión y usuarios\n\nLa sesión usa una cookie HttpOnly. Los endpoints compartidos son `POST /api/auth/login`, `POST /api/auth/logout` y `GET /api/auth/me`; `GET /api/health` comprueba la disponibilidad de la API. La autenticación consulta la colección `users`. La base de datos existente solo prepara `employees`: no incluye un usuario administrador. Aprovisiona por un procedimiento seguro un usuario con correo corporativo, rol `ADMIN`, estado activo y un hash bcrypt de su contraseña antes de probar el acceso. Si se aprovisiona la cuenta de demostración con el hash bcrypt previsto para `Demo1234!`, esa es su contraseña de ejemplo; no se crea ninguna cuenta desde el backend.\n\n## Módulos\n\nLas rutas de los módulos requieren sesión y se montan bajo `/api`:\n\n| Módulo | Endpoints |\n|---|---|\n| Pantalla principal | `GET /api/dashboard/summary` |\n| Alta de colaborador | `GET /api/employees`, `GET /api/employees/:id`, `POST /api/employees` |\n\nEl módulo de colaboradores utiliza la colección `employees` preparada por la capa database. El backend no crea el esquema ni carga datos de ejemplo.\n"
 }
