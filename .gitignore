@@ -6,4 +6,3 @@ firestore-debug.log*
 ui-debug.log*
 service-account*.json
 .env
-dist
