@@ -1,6 +1,6 @@
 import { Timestamp, type Query } from 'firebase-admin/firestore';
 import { db } from '../../config/database.js';
-import { countOf, nowTimestamp, prefixRange, withId } from '../../shared/db/db-utils.js';
+import { countOf, createWithNextCode, nowTimestamp, prefixRange, withId } from '../../shared/db/db-utils.js';
 import { offsetOf } from '../../shared/http/page.js';
 import type { EmployeeCategory, EmployeeCommitment, EmployeeListQuery, EmployeeStatus, EmployeeWorkMode } from './employee-management.schemas.js';
 
@@ -30,6 +30,8 @@ export type Employee = EmployeeDocument & { id: string };
 export type NewEmployee = Omit<EmployeeDocument, 'createdAt'>;
 export const EMPLOYEES_COLLECTION = { collectionName: 'employees' } as const;
 const collection = () => db.collection(EMPLOYEES_COLLECTION.collectionName);
+/** Prefijo de los legajos, el mismo que usan los datos de V3__employee_management.js (E-0001…). */
+const EMPLOYEE_NUMBER_PREFIX = 'E-';
 
 const filtered = (query: EmployeeListQuery): Query => {
   let result: Query = collection();
@@ -60,9 +62,12 @@ export const employeeManagementRepository = {
     return !snapshot.empty;
   },
 
-  async insert(id: string, employee: NewEmployee): Promise<Employee> {
-    const document: EmployeeDocument = { ...employee, createdAt: nowTimestamp() };
-    await collection().doc(id).create(document);
-    return { ...document, id };
+  /** Alta con el próximo legajo correlativo (E-0001, E-0002…): id del documento = employeeNumber. */
+  async insertWithNextNumber(employee: Omit<NewEmployee, 'employeeNumber'>): Promise<Employee> {
+    return createWithNextCode<EmployeeDocument>(EMPLOYEES_COLLECTION.collectionName, EMPLOYEE_NUMBER_PREFIX, (code) => ({
+      ...employee,
+      employeeNumber: code,
+      createdAt: nowTimestamp(),
+    }));
   },
 };

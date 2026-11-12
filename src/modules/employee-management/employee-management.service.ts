@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { newId, toIsoDateTime } from '../../shared/db/db-utils.js';
+import { toIsoDateTime } from '../../shared/db/db-utils.js';
 import { BusinessRuleError, ConflictError, NotFoundError } from '../../shared/errors/http-errors.js';
 import { toPageResponse, type PageResponse } from '../../shared/http/page.js';
 import { employeeManagementRepository, type Employee } from './employee-management.repository.js';
@@ -50,11 +50,9 @@ export const employeeManagementService = {
       throw new ConflictError('Ya existe un colaborador con ese correo electrónico.', 'personalEmail');
     }
 
-    // Un identificador UUID evita reutilizar legajos, incluso entre altas simultáneas.
-    const employeeNumber = `E-${newId()}`;
+    // El legajo es correlativo (E-0001, E-0002…): lo asigna el repositorio en la misma transacción que crea la ficha.
     const normalizedName = `${request.firstName} ${request.lastName}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const employee = await employeeManagementRepository.insert(employeeNumber, {
-      employeeNumber,
+    const employee = await employeeManagementRepository.insertWithNextNumber({
       normalizedName,
       firstName: request.firstName,
       lastName: request.lastName,
