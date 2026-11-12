@@ -13,6 +13,8 @@
     "test:seeds": "firebase emulators:exec --only firestore \"node scripts/seed.js --emulator\"",
     "deploy:firestore": "firebase deploy --only firestore:rules,firestore:indexes",
     "check": "node scripts/seed.js --check",
+    "create-admin": "node scripts/create-admin.js",
+    "create-admin:emulator": "node scripts/create-admin.js --emulator",
     "dev": "node --env-file-if-exists=.env --watch --import tsx src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/server.js",

@@ -34,3 +34,13 @@ El esquema de `employees` se documenta en `docs/collections/employee-management.
 ## Proyecto Firebase
 
 Para cargar datos en un proyecto real, configura `FIREBASE_PROJECT_ID` y `GOOGLE_APPLICATION_CREDENTIALS` con valores propios antes de ejecutar `npm run seed`. Revisa las reglas y los índices antes de desplegarlos con `npm run deploy:firestore`. No uses las credenciales de producción en el emulador.
+
+## Primer administrador
+
+Para entrar al sistema en un proyecto real, crea el administrador con tus credenciales (las mismas variables de arriba):
+
+```bash
+npm run create-admin -- --email=nombre@empresa.com --name="Nombre Apellido"
+```
+
+Crea el usuario en `users` con el rol `ADMIN` (Administración de Recursos Humanos) y muestra una contraseña al azar **una sola vez**: guárdala en ese momento. Para elegirla tú, define `ADMIN_PASSWORD` (mínimo 12 caracteres) antes de correrlo. Si la pierdes, vuelve a correrlo con `--reset`. En el emulador: `npm run create-admin:emulator -- --email=…`.
