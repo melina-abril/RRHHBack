@@ -1,30 +1,36 @@
-# Base de datos · Gestión de RR.HH
+# Gestión de RR.HH · Base de datos
 
-Cloud Firestore en modo nativo. Requiere Node.js 24 o superior. El backend accede mediante Firebase Admin SDK; las reglas bloquean el acceso directo de clientes.
+Cloud Firestore en modo nativo. El backend accede mediante Firebase Admin SDK; el frontend no se conecta directamente a Firestore. Por eso, las reglas deniegan el acceso de clientes. No se requieren índices compuestos para las consultas definidas hasta ahora.
 
-## Emulador y carga de datos
+## Desarrollo local
+
+Requiere Node.js 24 o posterior. Instala las dependencias y arranca el emulador de Firestore en `127.0.0.1:8085` (panel en el puerto `4005`):
 
 ```sh
 npm install
 npm run emulator
 ```
 
-En otra terminal:
+En otra terminal, carga los scripts versionados:
 
 ```sh
-npm run seed:emulator
+FIREBASE_PROJECT_ID=demo-app FIRESTORE_EMULATOR_HOST=127.0.0.1:8085 npm run seed:emulator
 ```
 
-El emulador de Firestore escucha en `127.0.0.1:8085` y su panel está en el puerto `4005`. Para ejecutar la carga y cerrar el emulador al terminar, usa `npm run test:seeds`. El runner aplica los scripts de `firestore/seeds` en orden de versión y registra los aplicados. `npm run check` comprueba los scripts disponibles.
+El backend usa los mismos nombres de variables, `FIREBASE_PROJECT_ID` y `FIRESTORE_EMULATOR_HOST`, para conectarse al emulador; levanta en el puerto `8080`. El frontend levanta en el puerto `4200` y llama al backend bajo `/api`, sin acceso directo a Firestore.
 
 ## Scripts y colecciones
 
-| Orden | Script | Colecciones |
+Los scripts de `firestore/seeds` se aplican en orden de versión. El runner `scripts/seed.js` registra cuáles se aplicaron; no modifiques un script ya aplicado. Para comprobar los scripts, ejecuta `npm run check`.
+
+| Módulo | Script | Colecciones |
 |---|---|---|
-| — | Todavía no hay scripts de carga | Todavía no hay colecciones de funcionalidades |
+| Inicio de sesión | Ninguno | Ninguna |
+| Pantalla principal | Ninguno | Ninguna |
+| Alta de colaborador | `firestore/seeds/V3__employee_management.js` | `employees` |
 
-Los pasos de core y módulos incorporarán sus propios scripts versionados y documentarán sus colecciones en `docs/collections`. No se deben modificar scripts ya aplicados.
+El esquema de `employees` se documenta en `docs/collections/employee-management.md`. Esta generación no incluye una colección compartida de usuarios ni datos de acceso; el aprovisionamiento de la cuenta administradora debe definirse junto con el módulo de autenticación del backend.
 
-## Proyecto real
+## Proyecto Firebase
 
-Configura `GOOGLE_APPLICATION_CREDENTIALS` con la ruta de una cuenta de servicio autorizada y `FIREBASE_PROJECT_ID` con el identificador de tu proyecto. Después ejecuta `npm run seed` para cargar los datos y `npm run deploy:firestore` para desplegar las reglas y los índices. No uses las credenciales de producción en el emulador ni las incorpores al repositorio.
+Para cargar datos en un proyecto real, configura `FIREBASE_PROJECT_ID` y `GOOGLE_APPLICATION_CREDENTIALS` con valores propios antes de ejecutar `npm run seed`. Revisa las reglas y los índices antes de desplegarlos con `npm run deploy:firestore`. No uses las credenciales de producción en el emulador.
