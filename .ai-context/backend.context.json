@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "layer": "backend",
-  "kind": "structure",
-  "generatedAt": "2026-11-12T20:02:13.692Z",
+  "kind": "features",
+  "generatedAt": "2026-11-12T20:24:05.726Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -82,11 +82,82 @@
       ]
     }
   ],
-  "modules": [],
+  "modules": [
+    {
+      "moduleName": "dashboard",
+      "title": "Pantalla principal",
+      "featureKeys": [
+        "b0a2b1be-b3b7-46e5-9e8c-f3b5d2f47df1"
+      ],
+      "services": [
+        {
+          "method": "GET",
+          "path": "/api/dashboard/summary",
+          "name": "getDashboardSummary",
+          "description": "Devuelve la cantidad de colaboradores activos y los próximos cumpleaños calculados desde employees; informa cero solicitudes pendientes mientras no exista una colección de solicitudes."
+        }
+      ]
+    },
+    {
+      "moduleName": "employees",
+      "title": "Alta y búsqueda de colaboradores",
+      "featureKeys": [
+        "2e5f236d-e30c-4e4f-9baa-9c536c43b2fe"
+      ],
+      "services": [
+        {
+          "method": "GET",
+          "path": "/api/employees",
+          "name": "listEmployees",
+          "description": "Devuelve colaboradores paginados, con búsqueda opcional por prefijo de nombre sin distinguir mayúsculas y minúsculas y filtro opcional por estado."
+        },
+        {
+          "method": "GET",
+          "path": "/api/employees/:id",
+          "name": "getEmployee",
+          "description": "Devuelve la ficha del colaborador identificado por su legajo o responde 404."
+        },
+        {
+          "method": "POST",
+          "path": "/api/employees",
+          "name": "createEmployee",
+          "description": "Valida los datos personales y laborales, rechaza duplicados, crea un colaborador activo con legajo correlativo y devuelve su ficha."
+        }
+      ]
+    }
+  ],
   "shared": [],
   "backend": {
     "basePath": "/api",
     "endpoints": [
+      {
+        "moduleName": "dashboard",
+        "method": "GET",
+        "path": "/api/dashboard/summary",
+        "name": "getDashboardSummary",
+        "description": "Devuelve la cantidad de colaboradores activos y los próximos cumpleaños calculados desde employees; informa cero solicitudes pendientes mientras no exista una colección de solicitudes."
+      },
+      {
+        "moduleName": "employees",
+        "method": "GET",
+        "path": "/api/employees",
+        "name": "listEmployees",
+        "description": "Devuelve colaboradores paginados, con búsqueda opcional por prefijo de nombre sin distinguir mayúsculas y minúsculas y filtro opcional por estado."
+      },
+      {
+        "moduleName": "employees",
+        "method": "GET",
+        "path": "/api/employees/:id",
+        "name": "getEmployee",
+        "description": "Devuelve la ficha del colaborador identificado por su legajo o responde 404."
+      },
+      {
+        "moduleName": "employees",
+        "method": "POST",
+        "path": "/api/employees",
+        "name": "createEmployee",
+        "description": "Valida los datos personales y laborales, rechaza duplicados, crea un colaborador activo con legajo correlativo y devuelve su ficha."
+      },
       {
         "moduleName": "",
         "method": "GET",
@@ -151,7 +222,7 @@
     ]
   },
   "relations": [
-    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 4 endpoints de backend.endpoints con el mismo method y path.",
+    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 8 endpoints de backend.endpoints con el mismo method y path.",
     "Frontend: el inicio de sesión usa POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me.",
     "Frontend: el backend habilita CORS con las variables FRONT_URL, JWT_SECRET, NODE_ENV; el origen del front tiene que estar ahí.",
     "Base de datos: el backend se conecta con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST (mismos nombres en el .env.example de la base)."
