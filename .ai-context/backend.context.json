@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "layer": "backend",
   "kind": "features",
-  "generatedAt": "2026-11-16T12:32:57.543Z",
+  "generatedAt": "2026-11-16T20:13:27.997Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -84,6 +84,41 @@
   ],
   "modules": [
     {
+      "moduleName": "employees",
+      "title": "Gestión de colaboradores",
+      "featureKeys": [
+        "fa70e22c-001d-4f88-b7a6-e71f7c252ae5",
+        "27c18bfb-402e-4596-9b4e-8054dfd66e47",
+        "af5e3ca4-bcd6-42d3-a48e-f944a1fdb66d"
+      ],
+      "services": [
+        {
+          "method": "GET",
+          "path": "/api/employees",
+          "name": "listEmployees",
+          "description": "Devuelve colaboradores paginados, con búsqueda y filtros opcionales."
+        },
+        {
+          "method": "GET",
+          "path": "/api/employees/:id",
+          "name": "getEmployee",
+          "description": "Devuelve la ficha de un colaborador o responde 404 si no existe."
+        },
+        {
+          "method": "POST",
+          "path": "/api/employees",
+          "name": "createEmployee",
+          "description": "Conserva el alta existente: registra un colaborador con legajo único."
+        },
+        {
+          "method": "PUT",
+          "path": "/api/employees/:id",
+          "name": "updateEmployee",
+          "description": "Valida y actualiza los datos personales, laborales generales y corporativos editables sin modificar el legajo."
+        }
+      ]
+    },
+    {
       "moduleName": "dashboard",
       "title": "Pantalla principal",
       "featureKeys": [
@@ -97,33 +132,6 @@
           "description": "Devuelve indicadores y próximos eventos calculados con los colaboradores registrados; no presenta solicitudes inexistentes como pendientes."
         }
       ]
-    },
-    {
-      "moduleName": "employees",
-      "title": "Alta de colaboradores",
-      "featureKeys": [
-        "2e5f236d-e30c-4e4f-9baa-9c536c43b2fe"
-      ],
-      "services": [
-        {
-          "method": "GET",
-          "path": "/api/employees",
-          "name": "listEmployees",
-          "description": "Devuelve un listado paginado de colaboradores."
-        },
-        {
-          "method": "GET",
-          "path": "/api/employees/:id",
-          "name": "getEmployee",
-          "description": "Devuelve la ficha del colaborador identificado por su legajo o responde 404."
-        },
-        {
-          "method": "POST",
-          "path": "/api/employees",
-          "name": "createEmployee",
-          "description": "Valida los datos personales y laborales, evita duplicados y registra un colaborador activo con legajo único."
-        }
-      ]
     }
   ],
   "shared": [],
@@ -131,32 +139,39 @@
     "basePath": "/api",
     "endpoints": [
       {
-        "moduleName": "dashboard",
-        "method": "GET",
-        "path": "/api/dashboard/summary",
-        "name": "getDashboardSummary",
-        "description": "Devuelve indicadores y próximos eventos calculados con los colaboradores registrados; no presenta solicitudes inexistentes como pendientes."
-      },
-      {
         "moduleName": "employees",
         "method": "GET",
         "path": "/api/employees",
         "name": "listEmployees",
-        "description": "Devuelve un listado paginado de colaboradores."
+        "description": "Devuelve colaboradores paginados, con búsqueda y filtros opcionales."
       },
       {
         "moduleName": "employees",
         "method": "GET",
         "path": "/api/employees/:id",
         "name": "getEmployee",
-        "description": "Devuelve la ficha del colaborador identificado por su legajo o responde 404."
+        "description": "Devuelve la ficha de un colaborador o responde 404 si no existe."
       },
       {
         "moduleName": "employees",
         "method": "POST",
         "path": "/api/employees",
         "name": "createEmployee",
-        "description": "Valida los datos personales y laborales, evita duplicados y registra un colaborador activo con legajo único."
+        "description": "Conserva el alta existente: registra un colaborador con legajo único."
+      },
+      {
+        "moduleName": "employees",
+        "method": "PUT",
+        "path": "/api/employees/:id",
+        "name": "updateEmployee",
+        "description": "Valida y actualiza los datos personales, laborales generales y corporativos editables sin modificar el legajo."
+      },
+      {
+        "moduleName": "dashboard",
+        "method": "GET",
+        "path": "/api/dashboard/summary",
+        "name": "getDashboardSummary",
+        "description": "Devuelve indicadores y próximos eventos calculados con los colaboradores registrados; no presenta solicitudes inexistentes como pendientes."
       },
       {
         "moduleName": "",
@@ -222,10 +237,10 @@
     ]
   },
   "relations": [
-    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 8 endpoints de backend.endpoints con el mismo method y path.",
+    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 9 endpoints de backend.endpoints con el mismo method y path.",
     "Frontend: el inicio de sesión usa POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me.",
     "Frontend: el backend habilita CORS con las variables FRONT_URL, JWT_SECRET, NODE_ENV; el origen del front tiene que estar ahí.",
     "Base de datos: el backend se conecta con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST (mismos nombres en el .env.example de la base)."
   ],
-  "readme": "# Gestión de RR.HH. · Backend\n\nAPI REST con Node.js 24, Express 5 y TypeScript. Esta estructura inicial no incluye módulos de funcionalidades. El endpoint de salud es `GET /api/health`; las rutas de sesión existentes son `POST /api/auth/login`, `POST /api/auth/logout` y `GET /api/auth/me`. Las demás rutas bajo `/api` requieren sesión.\n\n## Arranque\n\nRequiere Node.js 24 o posterior. Instala las dependencias con `npm install` y ejecuta `npm run dev` para desarrollo. Para compilar y arrancar el código compilado, ejecuta `npm run build && npm start`. La API utiliza el puerto 8080 por defecto; puedes configurarlo con `PORT`.\n\n## Configuración\n\nLa configuración del backend se lee desde las variables de entorno mediante los archivos existentes de `src/config/`. Consulta `.env.example` para las variables de sesión, CORS y conexión. En producción, configura `NODE_ENV=production` y un `JWT_SECRET` aleatorio de al menos 32 caracteres. No guardes secretos en el repositorio.\n\n## Conexión con Firestore\n\nLa capa de base de datos usa Cloud Firestore. Para desarrollo local, inicia su emulador según el README de la base de datos y conecta el backend con `FIREBASE_PROJECT_ID=demo-app`, `GCLOUD_PROJECT=demo-app` y `FIRESTORE_EMULATOR_HOST=127.0.0.1:8085`. El backend utiliza el SDK de administración y no crea colecciones ni carga datos de ejemplo. Consulta el README de la base para crear el primer usuario administrador; esta estructura inicial todavía no incluye usuarios de ejemplo.\n"
+  "readme": "# Gestión de RR.HH. · Backend\n\nAPI REST en Node.js 24, Express 5 y TypeScript. Este documento está separado del `README.md` existente, que pertenece a la capa de base de datos en el mismo repositorio.\n\n## Arranque\n\nRequiere Node.js 24 o posterior y la base Cloud Firestore disponible. Para desarrollo local, inicia el emulador y carga los datos siguiendo el `README.md` de la base de datos. Después ejecuta `npm install` y `npm run dev`. La API escucha en el puerto 8080. Para compilar y arrancar la versión compilada, ejecuta `npm run build && npm start`.\n\nLa configuración se lee del entorno; consulta `.env.example` para los valores de ejemplo. `PORT` configura el puerto de la API y `FRONT_URL` permite el origen del frontend. Para el emulador local, usa `FIREBASE_PROJECT_ID=demo-app` y `FIRESTORE_EMULATOR_HOST=127.0.0.1:8085`; configura `GCLOUD_PROJECT` con el mismo identificador de proyecto cuando corresponda. En producción, establece `NODE_ENV=production`, configura el proyecto y las credenciales de Google sin `FIRESTORE_EMULATOR_HOST`, y proporciona un `JWT_SECRET` aleatorio de al menos 32 caracteres.\n\n## Endpoints\n\n- Salud: `GET /api/health`.\n- Sesión: `POST /api/auth/login`, `POST /api/auth/logout` y `GET /api/auth/me`.\n- Colaboradores: `GET /api/employees`, `GET /api/employees/:id`, `POST /api/employees` y `PUT /api/employees/:id`.\n- Pantalla principal: `GET /api/dashboard/summary`.\n\nLas rutas de colaboradores y de la pantalla principal requieren sesión. La cuenta de demostración cargada por el seed del emulador es `rrhh@example.com`, con contraseña `Demo1234!`. No uses esa cuenta en producción.\n\n## Conexión con las otras capas\n\nEl frontend escucha en `http://localhost:4200` y dirige `/api` a este backend en `http://localhost:8080`; configura `FRONT_URL` para permitir ese origen. El backend accede a Firestore mediante el SDK de administración. En desarrollo, el emulador de la base escucha en `127.0.0.1:8085` y proporciona las colecciones compartidas `users` y `employees`. El frontend no accede directamente a Firestore.\n"
 }
