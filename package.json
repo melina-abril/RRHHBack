@@ -1,5 +1,5 @@
 {
-  "name": "app-firestore",
+  "name": "app",
   "version": "0.0.0",
   "private": true,
   "type": "module",
