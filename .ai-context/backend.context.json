@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "layer": "backend",
   "kind": "features",
-  "generatedAt": "2026-11-16T20:13:27.997Z",
+  "generatedAt": "2026-11-16T20:41:24.326Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -85,11 +85,9 @@
   "modules": [
     {
       "moduleName": "employees",
-      "title": "Gestión de colaboradores",
+      "title": "Alta de colaborador",
       "featureKeys": [
-        "fa70e22c-001d-4f88-b7a6-e71f7c252ae5",
-        "27c18bfb-402e-4596-9b4e-8054dfd66e47",
-        "af5e3ca4-bcd6-42d3-a48e-f944a1fdb66d"
+        "2e5f236d-e30c-4e4f-9baa-9c536c43b2fe"
       ],
       "services": [
         {
@@ -108,13 +106,13 @@
           "method": "POST",
           "path": "/api/employees",
           "name": "createEmployee",
-          "description": "Conserva el alta existente: registra un colaborador con legajo único."
+          "description": "Valida y registra un colaborador activo con legajo único automático."
         },
         {
           "method": "PUT",
           "path": "/api/employees/:id",
           "name": "updateEmployee",
-          "description": "Valida y actualiza los datos personales, laborales generales y corporativos editables sin modificar el legajo."
+          "description": "Valida y actualiza los datos editables sin modificar el legajo."
         }
       ]
     },
@@ -157,14 +155,14 @@
         "method": "POST",
         "path": "/api/employees",
         "name": "createEmployee",
-        "description": "Conserva el alta existente: registra un colaborador con legajo único."
+        "description": "Valida y registra un colaborador activo con legajo único automático."
       },
       {
         "moduleName": "employees",
         "method": "PUT",
         "path": "/api/employees/:id",
         "name": "updateEmployee",
-        "description": "Valida y actualiza los datos personales, laborales generales y corporativos editables sin modificar el legajo."
+        "description": "Valida y actualiza los datos editables sin modificar el legajo."
       },
       {
         "moduleName": "dashboard",

@@ -1,11 +1,27 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { toIsoDate, toIsoDateTime } from '../../shared/db/db-utils.js';
-import { NotFoundError } from '../../shared/errors/http-errors.js';
+import { ConflictError, NotFoundError } from '../../shared/errors/http-errors.js';
 import { toPageResponse, type PageResponse } from '../../shared/http/page.js';
-import { employeesRepository, type Employee } from './employees.repository.js';
-import type { EmployeeCreateRequest, EmployeeListQuery, EmployeeResponse, EmployeeUpdateRequest } from './employees.schemas.js';
+import { employeesRepository, type Employee, type EmployeeChanges } from './employees.repository.js';
+import type { EmployeeListQuery, EmployeeRequest, EmployeeResponse } from './employees.schemas.js';
 
 const dateTimestamp = (date: string): Timestamp => Timestamp.fromDate(new Date(`${date}T00:00:00.000Z`));
+
+const editableFields = (request: EmployeeRequest): EmployeeChanges => ({
+  firstName: request.firstName,
+  lastName: request.lastName,
+  birthDate: dateTimestamp(request.birthDate),
+  residenceCountry: request.residenceCountry,
+  personalEmail: request.personalEmail,
+  startDate: dateTimestamp(request.startDate),
+  category: request.category,
+  dedication: request.dedication,
+  workMode: request.workMode,
+  jobRole: request.jobRole,
+  initialClient: request.initialClient || null,
+  initialProject: request.initialProject || null,
+  initialManager: request.initialManager || null,
+});
 
 const toResponse = (employee: Employee): EmployeeResponse => ({
   id: employee.id,
@@ -43,33 +59,25 @@ export const employeesService = {
     return toResponse(employee);
   },
 
-  async create(request: EmployeeCreateRequest, userId: string): Promise<EmployeeResponse> {
+  async create(request: EmployeeRequest, userId: string): Promise<EmployeeResponse> {
+    if (await employeesRepository.existsByPersonalEmail(request.personalEmail)) {
+      throw new ConflictError('Ya existe un colaborador con ese correo personal. Revisa si corresponde un reingreso.', 'personalEmail');
+    }
     const employee = await employeesRepository.insert({
-      firstName: request.firstName,
-      lastName: request.lastName,
-      birthDate: dateTimestamp(request.birthDate),
-      residenceCountry: request.residenceCountry,
-      personalEmail: request.personalEmail,
-      startDate: dateTimestamp(request.startDate),
-      category: request.category,
-      dedication: request.dedication,
-      workMode: request.workMode,
-      jobRole: request.jobRole,
+      ...editableFields(request),
       status: 'ACTIVE',
-      initialClient: request.initialClient || null,
-      initialProject: request.initialProject || null,
-      initialManager: request.initialManager || null,
       createdById: userId,
       deletedAt: null,
     });
     return toResponse(employee);
   },
 
-  async update(id: string, request: EmployeeUpdateRequest): Promise<EmployeeResponse> {
-    const employee = await employeesRepository.update(id, {
-      ...request,
-      birthDate: dateTimestamp(request.birthDate),
-    });
+  async update(id: string, request: EmployeeRequest): Promise<EmployeeResponse> {
+    if (!(await employeesRepository.findById(id))) throw notFound(id);
+    if (await employeesRepository.existsByPersonalEmail(request.personalEmail, id)) {
+      throw new ConflictError('Ya existe un colaborador con ese correo personal.', 'personalEmail');
+    }
+    const employee = await employeesRepository.update(id, editableFields(request));
     if (!employee) throw notFound(id);
     return toResponse(employee);
   },
