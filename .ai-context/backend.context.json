@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "layer": "backend",
   "kind": "features",
-  "generatedAt": "2026-11-17T13:01:34.649Z",
+  "generatedAt": "2026-11-17T13:10:40.458Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -83,6 +83,23 @@
     }
   ],
   "modules": [
+    {
+      "moduleName": "employees-2",
+      "title": "Listado, ficha y edición de colaboradores",
+      "featureKeys": [
+        "fa70e22c-001d-4f88-b7a6-e71f7c252ae5",
+        "27c18bfb-402e-4596-9b4e-8054dfd66e47",
+        "af5e3ca4-bcd6-42d3-a48e-f944a1fdb66d"
+      ],
+      "services": [
+        {
+          "method": "PUT",
+          "path": "/api/employees/:id",
+          "name": "updateEmployee",
+          "description": "Valida y actualiza los datos editables del colaborador sin modificar su legajo; devuelve la ficha actualizada."
+        }
+      ]
+    },
     {
       "moduleName": "employment-movements",
       "title": "Movimientos laborales",
@@ -244,6 +261,13 @@
   "backend": {
     "basePath": "/api",
     "endpoints": [
+      {
+        "moduleName": "employees-2",
+        "method": "PUT",
+        "path": "/api/employees/:id",
+        "name": "updateEmployee",
+        "description": "Valida y actualiza los datos editables del colaborador sin modificar su legajo; devuelve la ficha actualizada."
+      },
       {
         "moduleName": "employment-movements",
         "method": "GET",
@@ -427,7 +451,7 @@
     ]
   },
   "relations": [
-    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 21 endpoints de backend.endpoints con el mismo method y path.",
+    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 22 endpoints de backend.endpoints con el mismo method y path.",
     "Frontend: el inicio de sesión usa POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me.",
     "Frontend: el backend habilita CORS con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, FRONT_URL; el origen del front tiene que estar ahí.",
     "Base de datos: el backend se conecta con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST (mismos nombres en el .env.example de la base)."
