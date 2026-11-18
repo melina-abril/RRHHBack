@@ -1,3 +1,3 @@
-export interface DashboardSummaryResponse {
+export interface DashboardResponse {
   activeEmployees: number;
 }

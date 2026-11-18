@@ -1,8 +1,8 @@
 import { dashboardRepository } from './dashboard.repository.js';
-import type { DashboardSummaryResponse } from './dashboard.schemas.js';
+import type { DashboardResponse } from './dashboard.schemas.js';
 
 export const dashboardService = {
-  async getSummary(): Promise<DashboardSummaryResponse> {
+  async getDashboard(): Promise<DashboardResponse> {
     return {
       activeEmployees: await dashboardRepository.countActiveEmployees(),
     };
