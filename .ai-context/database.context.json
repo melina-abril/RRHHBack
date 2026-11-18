@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "layer": "database",
-  "kind": "structure",
-  "generatedAt": "2026-11-18T13:12:32.012Z",
+  "kind": "features",
+  "generatedAt": "2026-11-18T14:01:24.553Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -58,8 +58,58 @@
       ]
     }
   ],
-  "modules": [],
-  "shared": [],
+  "modules": [
+    {
+      "moduleName": "login",
+      "title": "Inicio de sesión",
+      "featureKeys": [
+        "bb1c28e3-4842-4b41-a5c3-9738171a3d2e"
+      ],
+      "services": []
+    },
+    {
+      "moduleName": "dashboard",
+      "title": "Pantalla principal",
+      "featureKeys": [
+        "b0a2b1be-b3b7-46e5-9e8c-f3b5d2f47df1"
+      ],
+      "services": []
+    },
+    {
+      "moduleName": "employees",
+      "title": "Listado de colaboradores",
+      "featureKeys": [
+        "fa70e22c-001d-4f88-b7a6-e71f7c252ae5"
+      ],
+      "services": [],
+      "tables": [
+        "employees"
+      ]
+    },
+    {
+      "moduleName": "employee-profile",
+      "title": "Ficha individual del colaborador",
+      "featureKeys": [
+        "27c18bfb-402e-4596-9b4e-8054dfd66e47"
+      ],
+      "services": []
+    },
+    {
+      "moduleName": "employee-create",
+      "title": "Alta de colaborador",
+      "featureKeys": [
+        "2e5f236d-e30c-4e4f-9baa-9c536c43b2fe"
+      ],
+      "services": []
+    }
+  ],
+  "shared": [
+    {
+      "path": "firestore/seeds/V1__core.js",
+      "exportName": "users",
+      "kind": "collection"
+    }
+  ],
   "database": {
     "engine": "firestore",
     "containers": [],
@@ -68,14 +118,26 @@
       "FIRESTORE_EMULATOR_HOST",
       "GCLOUD_PROJECT"
     ],
-    "tables": [],
+    "tables": [
+      {
+        "name": "employees",
+        "moduleName": "employees",
+        "columns": null
+      },
+      {
+        "name": "users",
+        "moduleName": "",
+        "columns": null
+      }
+    ],
     "firebase": {
       "projectId": "demo-app",
       "emulatorHost": "127.0.0.1:8085"
     }
   },
   "relations": [
-    "Backend: la base es firestore (en desarrollo, emulador en 127.0.0.1:8085, proyecto demo-app); conéctate con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, GCLOUD_PROJECT."
+    "Backend: la base es firestore (en desarrollo, emulador en 127.0.0.1:8085, proyecto demo-app); conéctate con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, GCLOUD_PROJECT.",
+    "Backend: usa EXACTAMENTE estas tablas y columnas (database.tables), sin crear el esquema desde el ORM: employees, users."
   ],
-  "readme": "# Gestión de RR.HH. — Firestore\n\nBase de datos Cloud Firestore para RH smart. Esta estructura inicial no contiene colecciones, documentos de ejemplo ni scripts de carga de funcionalidades. Las reglas deniegan el acceso directo; el backend debe acceder mediante el SDK de administración.\n\n## Requisitos\n\n- Node.js 24 o posterior\n- npm\n\nInstala las dependencias con `npm install`.\n\n## Emulador y carga de datos\n\nInicia el emulador con `npm run emulator`. Firestore estará disponible en `127.0.0.1:8085` y el panel del emulador en el puerto `4005`.\n\nCuando se hayan generado scripts en `firestore/seeds`, ejecuta `npm run seed:emulator` en otra terminal para cargarlos en orden de versión. El runner registra los scripts aplicados en `_seedHistory`. Puedes verificar los scripts con `npm run check` y probar la carga con `npm run test:seeds`.\n\n## Proyecto real\n\nConfigura `FIREBASE_PROJECT_ID` con el identificador de tu proyecto y `GOOGLE_APPLICATION_CREDENTIALS` con la ruta a un archivo de credenciales proporcionado por tu organización. No incluyas ese archivo en el repositorio. Después, ejecuta `npm run seed` para cargar los scripts disponibles y `npm run deploy:firestore` para desplegar reglas e índices.\n\nCuando exista la colección `users` y el backend haya definido su código de rol administrador, crea la cuenta inicial con `npm run create-admin -- --email=admin@example.com --name=\"Administrador de RR. HH.\" --role=ADMIN_RRHH`. Sustituye el correo de ejemplo y confirma que `ADMIN_RRHH` coincida con el rol exigido por el backend. El script toma la contraseña de `ADMIN_PASSWORD` o genera una y la muestra una sola vez; para restablecerla, añade `--reset`. Para usar el emulador, emplea `npm run create-admin:emulator` con los mismos argumentos. No uses una cuenta de ejemplo como administrador de un entorno real.\n\n## Colecciones y scripts\n\nAún no hay colecciones ni scripts de carga de funcionalidades. Los próximos pasos documentarán cada colección en `docs/collections` y agregarán sus scripts versionados a `firestore/seeds`. Por ahora, `firestore.indexes.json` no necesita índices compuestos.\n"
+  "readme": "# Base de datos de Gestión de RR.HH\n\nCloud Firestore almacena los datos de RH smart. El backend accede mediante el SDK de administración; las reglas deniegan el acceso directo de clientes. La configuración de Firebase, el runner de carga y la herramienta para crear administradores ya forman parte del proyecto.\n\n## Desarrollo local\n\nSe requieren Node.js 24 o posterior y npm. Ejecuta `npm install` y, en una terminal, `npm run emulator`. Firestore estará en `127.0.0.1:8085` y el panel del emulador en el puerto `4005`. En otra terminal, ejecuta `npm run seed:emulator` para aplicar los scripts pendientes en orden de versión. El runner registra los scripts aplicados en `_seedHistory`; no modifiques un script que ya se haya aplicado. `npm run test:seeds` permite comprobar la carga en un emulador temporal.\n\nEl backend utiliza `FIREBASE_PROJECT_ID=demo-app` y `FIRESTORE_EMULATOR_HOST=127.0.0.1:8085` para conectarse al emulador. Su API escucha en el puerto 8080 con el prefijo `/api`. El frontend escucha en el puerto 4200 y dirige `/api` al backend. Estas variables se configuran en el entorno del backend; no se necesitan credenciales de servicio para el emulador.\n\n## Colecciones y carga\n\n| Script | Colecciones | Propósito |\n|---|---|---|\n| `firestore/seeds/V1__core.js` | `users` | Cuenta administradora de demostración |\n| `firestore/seeds/V4__employees.js` | `employees` | Colaboradores de ejemplo |\n\nEl esquema de cada colección está en `docs/collections/`. Los módulos de inicio de sesión, pantalla principal, ficha individual y alta de colaborador no crean colecciones propias. Por ahora, el backend aprobado solo expone salud y autenticación; la existencia de datos de empleados no implica que ya haya endpoints para consultarlos.\n\nLa cuenta ficticia cargada en `users` es `rrhh@example.com`, con contraseña `Demo1234!` y rol `ADMIN`. Úsala solo para demostración. Para crear la cuenta inicial de un entorno real o restablecer su contraseña, ejecuta `npm run create-admin -- --email=admin@example.com --name=\"Administración de Recursos Humanos\" --role=ADMIN` y usa `--reset` para restablecerla. Proporciona `ADMIN_PASSWORD` mediante una variable de entorno o deja que la herramienta genere una contraseña y la muestre una sola vez. La herramienta equivalente para el emulador es `npm run create-admin:emulator -- --email=admin@example.com --name=\"Administración de Recursos Humanos\" --role=ADMIN`. No conserves activa la cuenta ficticia en producción.\n\n## Proyecto real\n\nConfigura `FIREBASE_PROJECT_ID` con el identificador del proyecto y `GOOGLE_APPLICATION_CREDENTIALS` con la ruta a las credenciales de servicio, sin publicarlas en el repositorio. `npm run check` comprueba el estado de las cargas; `npm run seed` aplica los scripts pendientes. Ten en cuenta que V1 carga una cuenta de demostración: antes de usar un entorno real, planifica cómo deshabilitarla o eliminarla y crea la cuenta administradora mediante `npm run create-admin`. `npm run deploy:firestore` despliega las reglas y los índices. El archivo de índices está vacío porque las colecciones generadas hasta ahora no especifican consultas que combinen un filtro y un ordenamiento por otro campo.\n"
 }
