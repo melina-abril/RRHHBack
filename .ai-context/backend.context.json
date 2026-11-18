@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "layer": "backend",
   "kind": "features",
-  "generatedAt": "2026-11-18T14:05:21.762Z",
+  "generatedAt": "2026-11-18T15:01:38.475Z",
   "system": {
     "uid": "3gwNp1rgzqO2F7l1sxjV",
     "name": "Gestión de RR.HH"
@@ -92,24 +92,38 @@
       "services": [
         {
           "method": "GET",
-          "path": "/api/dashboard/summary",
-          "name": "getDashboardSummary",
-          "description": "Devuelve la cantidad de colaboradores activos calculada desde employees; no atribuye datos de solicitudes o eventos a colecciones inexistentes."
+          "path": "/api/dashboard",
+          "name": "getDashboard",
+          "description": "Devuelve el número de colaboradores activos calculado desde employees. No presenta como datos reales indicadores para los que aún no existen colecciones."
         }
       ]
     },
     {
       "moduleName": "employees",
-      "title": "Listado de colaboradores",
+      "title": "Gestión de Empleados",
       "featureKeys": [
-        "fa70e22c-001d-4f88-b7a6-e71f7c252ae5"
+        "fa70e22c-001d-4f88-b7a6-e71f7c252ae5",
+        "27c18bfb-402e-4596-9b4e-8054dfd66e47",
+        "2e5f236d-e30c-4e4f-9baa-9c536c43b2fe"
       ],
       "services": [
         {
           "method": "GET",
           "path": "/api/employees",
           "name": "listEmployees",
-          "description": "Devuelve una PageResponse de colaboradores, con búsqueda por prefijo de nombre sin distinguir mayúsculas y filtros compatibles con los campos de employees."
+          "description": "Devuelve una página de colaboradores de employees, con búsqueda por prefijo de nombre sin distinguir mayúsculas y filtros compatibles con sus campos."
+        },
+        {
+          "method": "GET",
+          "path": "/api/employees/:id",
+          "name": "getEmployee",
+          "description": "Devuelve los datos disponibles del legajo solicitado; responde 404 si no existe."
+        },
+        {
+          "method": "POST",
+          "path": "/api/employees",
+          "name": "createEmployee",
+          "description": "Valida y guarda un colaborador con los campos de employees; genera un legajo correlativo y devuelve el registro creado."
         }
       ]
     }
@@ -121,16 +135,30 @@
       {
         "moduleName": "dashboard",
         "method": "GET",
-        "path": "/api/dashboard/summary",
-        "name": "getDashboardSummary",
-        "description": "Devuelve la cantidad de colaboradores activos calculada desde employees; no atribuye datos de solicitudes o eventos a colecciones inexistentes."
+        "path": "/api/dashboard",
+        "name": "getDashboard",
+        "description": "Devuelve el número de colaboradores activos calculado desde employees. No presenta como datos reales indicadores para los que aún no existen colecciones."
       },
       {
         "moduleName": "employees",
         "method": "GET",
         "path": "/api/employees",
         "name": "listEmployees",
-        "description": "Devuelve una PageResponse de colaboradores, con búsqueda por prefijo de nombre sin distinguir mayúsculas y filtros compatibles con los campos de employees."
+        "description": "Devuelve una página de colaboradores de employees, con búsqueda por prefijo de nombre sin distinguir mayúsculas y filtros compatibles con sus campos."
+      },
+      {
+        "moduleName": "employees",
+        "method": "GET",
+        "path": "/api/employees/:id",
+        "name": "getEmployee",
+        "description": "Devuelve los datos disponibles del legajo solicitado; responde 404 si no existe."
+      },
+      {
+        "moduleName": "employees",
+        "method": "POST",
+        "path": "/api/employees",
+        "name": "createEmployee",
+        "description": "Valida y guarda un colaborador con los campos de employees; genera un legajo correlativo y devuelve el registro creado."
       },
       {
         "moduleName": "",
@@ -198,10 +226,10 @@
     ]
   },
   "relations": [
-    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 6 endpoints de backend.endpoints con el mismo method y path.",
+    "Frontend: llama al backend en el puerto 8080 con el prefijo /api; consume SOLO los 8 endpoints de backend.endpoints con el mismo method y path.",
     "Frontend: el inicio de sesión usa POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me.",
     "Frontend: el backend habilita CORS con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST, FRONT_URL, JWT_SECRET, NODE_ENV; el origen del front tiene que estar ahí.",
     "Base de datos: el backend se conecta con las variables FIREBASE_PROJECT_ID, FIRESTORE_EMULATOR_HOST (mismos nombres en el .env.example de la base)."
   ],
-  "readme": "# Backend de Gestión de RR.HH\n\nAPI REST de RH smart. La documentación de la base de datos se encuentra en el `README.md` de la raíz del repositorio; este archivo documenta únicamente el backend para no reemplazarla.\n\n## Requisitos y ejecución\n\nSe requieren Node.js 24 o posterior, npm y Cloud Firestore. Para desarrollo local, inicia el emulador de la base según el `README.md` de la raíz y carga sus datos de ejemplo. Después, configura las variables del backend y ejecuta:\n\n```sh\nnpm install\nnpm run dev\n```\n\nPara compilar y ejecutar la aplicación compilada:\n\n```sh\nnpm run build\nnpm start\n```\n\nLa API escucha en el puerto 8080 de forma predeterminada y expone sus rutas bajo `/api`. `GET /api/health` permite comprobar que está en ejecución.\n\n## Configuración\n\nEl backend lee su configuración de las variables de entorno; consulta el archivo `.env.example` existente para los valores de desarrollo. Las variables pertinentes son:\n\n- `PORT`: puerto de la API; predeterminado: `8080`.\n- `NODE_ENV`: usa `production` en producción.\n- `JWT_SECRET`: secreto de firma de la sesión; en producción es obligatorio y debe tener al menos 32 caracteres aleatorios.\n- `FRONT_URL`: origen permitido para el frontend; en desarrollo, `http://localhost:4200`.\n- `FIREBASE_PROJECT_ID`: identificador del proyecto Firestore; para el emulador, `demo-app`.\n- `FIRESTORE_EMULATOR_HOST`: dirección del emulador; en desarrollo, `127.0.0.1:8085`.\n- `GCLOUD_PROJECT`: identificador del proyecto cuando lo requiera el entorno de Firestore; para el emulador, `demo-app`.\n\nEn producción configura el acceso a Firestore mediante las credenciales de servicio del entorno, sin incluirlas en el repositorio. El backend utiliza la conexión definida en `src/config/database.ts`; no crea colecciones ni carga datos.\n\n## Sesión y módulos\n\nLa sesión se mantiene en una cookie HttpOnly. Las rutas públicas son `POST /api/auth/login` y `POST /api/auth/logout`; `GET /api/auth/me` requiere sesión. Los demás endpoints de los módulos también requieren sesión.\n\n| Módulo | Endpoint | Función |\n|---|---|---|\n| Pantalla principal | `GET /api/dashboard/summary` | Resumen de colaboradores activos. |\n| Listado de colaboradores | `GET /api/employees` | Listado paginado y filtrable. |\n| Ficha individual | `GET /api/employees/:id` | Consulta de un colaborador por legajo. |\n| Alta de colaborador | `POST /api/employees` | Creación de un colaborador con legajo correlativo. |\n\nLa ficha y el alta comparten el recurso `/api/employees` y se registran mediante el router de colaboradores; no tienen routers independientes.\n\nLos scripts de carga de la base incluyen una cuenta ficticia `rrhh@example.com`, con rol `ADMIN` y contraseña `Demo1234!`, exclusivamente para demostración. Consulta el `README.md` de la raíz para crear una cuenta administradora en otro entorno y no mantengas activa la cuenta ficticia en producción.\n\n## Integración con las otras capas\n\nEl frontend Angular se ejecuta en `http://localhost:4200` y dirige `/api` a `http://localhost:8080`. Configura `FRONT_URL` con su origen para permitir las solicitudes con credenciales. El backend se conecta a Firestore mediante `FIREBASE_PROJECT_ID`; en desarrollo utiliza `FIRESTORE_EMULATOR_HOST=127.0.0.1:8085`. Las colecciones `users` y `employees` y sus datos de ejemplo pertenecen a la capa de base de datos, no a este backend.\n"
+  "readme": ""
 }

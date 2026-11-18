@@ -4,7 +4,7 @@ import { dashboardService } from './dashboard.service.js';
 
 export const dashboardRouter = Router();
 
-/** GET /api/dashboard/summary */
-dashboardRouter.get('/summary', requireRole('ADMIN'), async (_req, res) => {
-  res.json(await dashboardService.getSummary());
+/** GET /api/dashboard */
+dashboardRouter.get('/', requireRole('ADMIN'), async (_req, res) => {
+  res.json(await dashboardService.getDashboard());
 });

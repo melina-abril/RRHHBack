@@ -1,8 +1,8 @@
-import { toIsoDate } from '../../shared/db/db-utils.js';
-import { NotFoundError } from '../../shared/errors/http-errors.js';
+import { toIsoDate, toTimestamp } from '../../shared/db/db-utils.js';
+import { ConflictError, NotFoundError } from '../../shared/errors/http-errors.js';
 import { toPageResponse, type PageResponse } from '../../shared/http/page.js';
 import { employeesRepository, type Employee } from './employees.repository.js';
-import type { EmployeeListQuery, EmployeeResponse } from './employees.schemas.js';
+import type { EmployeeCreateRequest, EmployeeListQuery, EmployeeResponse } from './employees.schemas.js';
 
 const toResponse = (employee: Employee): EmployeeResponse => ({
   id: employee.id,
@@ -27,10 +27,35 @@ export const employeesService = {
     return toPageResponse(items.map(toResponse), total, query);
   },
 
-  /** Consulta pública para los casos de uso de ficha y alta; ningún otro módulo accede al repositorio. */
   async get(id: string): Promise<EmployeeResponse> {
     const employee = await employeesRepository.findById(id);
     if (!employee) throw new NotFoundError(`No existe el colaborador ${id}.`);
+    return toResponse(employee);
+  },
+
+  async create(request: EmployeeCreateRequest, userId: string): Promise<EmployeeResponse> {
+    const email = request.email.trim().toLowerCase();
+    if (await employeesRepository.existsByEmail(email)) {
+      throw new ConflictError('Ya existe un colaborador con ese correo.', 'email');
+    }
+    const fullName = `${request.firstName} ${request.lastName}`;
+    const employee = await employeesRepository.insert({
+      firstName: request.firstName,
+      lastName: request.lastName,
+      fullName,
+      normalizedName: fullName.toLocaleLowerCase('es'),
+      email,
+      category: request.category,
+      country: request.country,
+      position: request.position,
+      clientNames: request.clientNames,
+      projectNames: request.projectNames,
+      status: 'ACTIVE',
+      hireDate: toTimestamp(request.hireDate),
+      terminationDate: null,
+      createdById: userId,
+      deletedAt: null,
+    });
     return toResponse(employee);
   },
 };
